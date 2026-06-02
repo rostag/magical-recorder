@@ -431,11 +431,14 @@
 
   .staff-note-head {
     fill: var(--cream-dim);
-    transition: fill 0.1s ease;
+    stroke: none;
+    transition: stroke 0.1s ease, stroke-width 0.1s ease;
   }
   .staff-note-head.active {
-    fill: var(--staff-active-fill);
-    filter: drop-shadow(0 0 5px var(--staff-active-glow));
+    fill: var(--cream-dim);
+    stroke: var(--staff-active-fill);
+    stroke-width: 2;
+    filter: none;
   }
   .staff-note-stem { stroke: var(--cream-dim); stroke-width: 1.5; transition: stroke 0.1s ease; }
   .staff-note-stem.active { stroke: var(--staff-active-fill); stroke-width: 2.5; }
@@ -452,31 +455,8 @@
     font-size: 9px;
   }
 
-  /* Active note background pill on staff */
-  .staff-note-bg {
-    fill: transparent;
-    transition: fill 0.1s ease;
-  }
-  .staff-note-bg.active {
-    fill: var(--staff-active-fill);
-  }
-  /* When bg active, flip note head to bg color for contrast */
-  .staff-note-head {
-    fill: var(--cream-dim);
-    transition: fill 0.1s ease;
-  }
-  .staff-note-head.active {
-    fill: var(--bg);
-    filter: none;
-  }
-  .staff-note-stem.active {
-    stroke: var(--staff-active-fill);
-    stroke-width: 2.5;
-  }
-  .staff-note-label.active {
-    fill: var(--staff-active-fill);
-    font-weight: 700;
-  }
+  .staff-note-bg { fill: transparent; }
+  .staff-note-bg.active { fill: transparent; }
 
   /* Theme toggle */
   .theme-toggle {
@@ -498,6 +478,129 @@
     gap: 0.4rem;
   }
   .theme-toggle:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* --- Notes collapsible wrapper --- */
+  .notes-wrapper {
+    max-width: 700px;
+    margin: 0 auto 2rem;
+  }
+
+  .section-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.5rem 0.5rem;
+    border-bottom: 1px solid var(--divider);
+    margin-bottom: 0;
+    user-select: none;
+    transition: color 0.15s ease;
+  }
+  .section-toggle:hover { color: var(--gold); }
+
+  .notes-collapsible { display: none; }
+  .notes-collapsible.open { display: block; }
+
+  /* --- Drill panels --- */
+  .drill-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cream-dim);
+    cursor: pointer;
+    padding: 0.5rem 0 0;
+    margin-top: 0.8rem;
+    border-top: 1px solid var(--border);
+    user-select: none;
+    transition: color 0.15s ease;
+    letter-spacing: 0.05em;
+  }
+  .drill-toggle:hover { color: var(--gold); }
+
+  .drill-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+  .drill-content.open { max-height: 1200px; }
+
+  .drill-rows {
+    padding-top: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .drill-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--cream-dim);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    transition: background 0.1s ease;
+  }
+  .drill-row:hover { background: var(--surface2); }
+  .drill-row.playing { background: var(--surface2); color: var(--cream); }
+
+  .drill-base {
+    color: var(--gold);
+    min-width: 2.8rem;
+    font-size: 0.72rem;
+    flex-shrink: 0;
+  }
+
+  .drill-chain { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+
+  .drill-seq-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.02rem;
+    color: var(--cream);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.2rem 0.5rem;
+    transition: all 0.15s ease;
+    display: inline-block;
+    line-height: 1.3;
+  }
+  .drill-seq-note.seq-active {
+    border-color: var(--seq-active-border);
+    color: var(--seq-active-color);
+    background: var(--seq-active-bg);
+    font-weight: 700;
+  }
+
+  .drill-seq-arrow {
+    color: var(--gold-dim);
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .drill-play-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--cream-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15rem 0.4rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .drill-play-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .drill-play-btn.playing { border-color: var(--gold); color: var(--gold); }
+  .drill-loop-btn.playing { border-color: var(--loop-on-border); color: var(--loop-on-color); }
 </style>
 </head>
 <body>
@@ -508,13 +611,7 @@
   <p>Таблиця аплікатур · До¹ — Ля³</p>
 </header>
 
-<div id="app"></div>
-
-<div class="legend">
-  <div class="legend-item"><div class="legend-hole closed"></div>закрито</div>
-  <div class="legend-item"><div class="legend-hole"></div>відкрито</div>
-  <div class="legend-item"><div class="legend-hole half"></div>напівзакрито</div>
-</div>
+<div id="notes-section"></div>
 
 <div id="exercises"></div>
 
@@ -542,6 +639,14 @@ function stopCurrent() {
     b.classList.remove('playing');
     b.innerHTML = '&#9654;';
   });
+}
+
+// --- localStorage helpers ---
+function lsGet(key, defaultVal) {
+  try { const v = localStorage.getItem(key); return v === null ? defaultVal : v === 'true'; } catch(e) { return defaultVal; }
+}
+function lsSet(key, val) {
+  try { localStorage.setItem(key, val ? 'true' : 'false'); } catch(e) {}
 }
 
 // Recorder-like timbre: fundamental + harmonics shaped to flute
@@ -819,49 +924,65 @@ const EXERCISES = [
       {name:'Соль',oct:1},{name:'Фа',oct:2}
     ]
   },
-  {
-    name: '1 — 4 — 5 · До',
-    meta: 'від До',
-    desc: 'До → Фа → Соль → До. Стабільність → відхід → очікування → повернення.',
-    seq: [{name:'До',oct:1},{name:'Фа',oct:1},{name:'Соль',oct:1},{name:'До',oct:2}]
-  },
-  {
-    name: '1 — 4 — 5 · Ре',
-    meta: 'від Ре',
-    desc: 'Ре → Соль → Ля → Ре. Той самий характер, інша точка старту.',
-    seq: [{name:'Ре',oct:1},{name:'Соль',oct:1},{name:'Ля',oct:1},{name:'Ре',oct:2}]
-  },
-  {
-    name: '1 — 4 — 5 · Мі',
-    meta: 'від Мі',
-    desc: 'Мі → Ля → Сі → Мі. Зверни увагу — Сі близько до зміни регістру.',
-    seq: [{name:'Мі',oct:1},{name:'Ля',oct:1},{name:'Сі',oct:1},{name:'Мі',oct:2}]
-  },
-  {
-    name: '1 — 4 — 5 · Фа',
-    meta: 'від Фа',
-    desc: 'Фа → Сі → До → Фа. Тритон між 1 і 4 — найбільш напружений варіант.',
-    seq: [{name:'Фа',oct:1},{name:'Сі',oct:1},{name:'До',oct:2},{name:'Фа',oct:2}]
-  },
-  {
-    name: '1 — 4 — 5 · Соль',
-    meta: 'від Соль',
-    desc: 'Соль → До → Ре → Соль. Класична соль-мажорна основа.',
-    seq: [{name:'Соль',oct:1},{name:'До',oct:2},{name:'Ре',oct:2},{name:'Соль',oct:2}]
-  },
-  {
-    name: '1 — 4 — 5 · Ля',
-    meta: 'від Ля',
-    desc: 'Ля → Ре → Мі → Ля. Ля-мінорна основа — темніший характер.',
-    seq: [{name:'Ля',oct:1},{name:'Ре',oct:2},{name:'Мі',oct:2},{name:'Ля',oct:2}]
-  },
-  {
-    name: '1 — 4 — 5 · Сі',
-    meta: 'від Сі',
-    desc: 'Сі → Мі → Фа → Сі. Зменшена квінта між 1 і 5 — нестандартний характер.',
-    seq: [{name:'Сі',oct:1},{name:'Мі',oct:2},{name:'Фа',oct:2},{name:'Сі',oct:2}]
-  },
 ];
+
+// --- Chain generation helpers ---
+const NOTE_NAMES = ['До','Ре','Мі','Фа','Соль','Ля','Сі'];
+const nameToIdx = {До:0,Ре:1,Мі:2,Фа:3,Соль:4,Ля:5,Сі:6};
+
+function noteInRange(name, oct) {
+  if (oct === 1 || oct === 2) return true;
+  if (oct === 3 && name === 'До') return true;
+  return false;
+}
+
+function stepNote(name, oct, delta) {
+  const raw = nameToIdx[name] + delta;
+  const newOct = oct + Math.floor(raw / 7);
+  const newName = NOTE_NAMES[((raw % 7) + 7) % 7];
+  return { name: newName, oct: newOct };
+}
+
+function buildChain(baseName, baseOct, intervalSteps, length) {
+  length = length === undefined ? 3 : length;
+  const chain = [{ name: baseName, oct: baseOct }];
+  for (let i = 0; i < length; i++) {
+    const cur = chain[chain.length - 1];
+    const up = stepNote(cur.name, cur.oct, intervalSteps);
+    if (noteInRange(up.name, up.oct)) {
+      chain.push(up);
+    } else {
+      chain.push(stepNote(cur.name, cur.oct, -intervalSteps));
+    }
+  }
+  return chain;
+}
+
+function build145Chain(baseName, baseOct) {
+  return [0, 3, 4, 7].map(offset => {
+    if (offset === 0) return { name: baseName, oct: baseOct };
+    const up = stepNote(baseName, baseOct, offset);
+    if (noteInRange(up.name, up.oct)) return up;
+    return stepNote(baseName, baseOct, -offset);
+  });
+}
+
+const DRILL_INTERVALS = { 'Терції': 2, 'Кварти': 3, 'Квінти': 4, 'Сексти': 5, 'Септими': 6 };
+const DRILL_NAMES = {
+  'Терції': 'Розтерцовка', 'Кварти': 'Розквартовка', 'Квінти': 'Розквінтовка',
+  'Сексти': 'Розсекстовка', 'Септими': 'Розсептимовка'
+};
+const DRILL_BASE_NOTES = [
+  {name:'До',oct:1},{name:'Ре',oct:1},{name:'Мі',oct:1},{name:'Фа',oct:1},
+  {name:'Соль',oct:1},{name:'Ля',oct:1},{name:'Сі',oct:1},{name:'До',oct:2}
+];
+
+const EXERCISE_145 = {
+  name: '1 — 4 — 5',
+  meta: 'тональності',
+  desc: 'До→Фа→Соль→До. Стабільність→відхід→очікування→повернення.',
+  seq: [{name:'До',oct:1},{name:'Фа',oct:1},{name:'Соль',oct:1},{name:'До',oct:2}]
+};
 
 let exTimers = {};
 
@@ -871,7 +992,7 @@ function getNoteByName(name, oct) {
 
 let seqStopper = null;
 
-function playSequence(seqNotes, bpm, playBtn, activeSet, loop, staffNotes) {
+function playSequence(seqNotes, bpm, playBtn, activeSet, loop, staffNotes, onDone) {
   const interval = (60 / bpm) * 1000;
   let i = 0;
   let stopped = false;
@@ -894,6 +1015,7 @@ function playSequence(seqNotes, bpm, playBtn, activeSet, loop, staffNotes) {
         if (staffNotes) staffNotes.forEach(g => {
           g.querySelectorAll('.staff-note-head,.staff-note-stem,.staff-note-label,.staff-note-bg').forEach(el => el.classList.remove('active'));
         });
+        if (onDone) onDone();
         return;
       }
     }
@@ -942,11 +1064,11 @@ function noteStaffStep(name, oct) {
 }
 
 function buildStaff(seqNotes) {
-  const STEP = 7;       // pixels per staff step (half-space)
+  const STEP = 5;       // pixels per staff step (half-space)
   const LINE_STEPS = [0, 4, 8, 12, 16]; // E4,G4,B4,D5,F5 — treble clef lines from bottom
   const MARGIN_L = 42;  // space for clef
   const NOTE_W = 36;    // horizontal spacing per note
-  const HEAD_RX = 5, HEAD_RY = 3.5;
+  const HEAD_RX = 6.5, HEAD_RY = 4.55;
   const STEM_LEN = 28;
 
   const staffH = 16 * STEP + 40; // total height with ledger headroom
@@ -1060,6 +1182,264 @@ function buildStaff(seqNotes) {
   return { svg, noteGroups };
 }
 
+function buildExerciseCard(ex, section) {
+  const card = document.createElement('div');
+  card.className = 'exercise-card';
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'exercise-header';
+  const nameEl = document.createElement('div');
+  nameEl.className = 'exercise-name';
+  nameEl.textContent = ex.name;
+  const metaEl = document.createElement('div');
+  metaEl.className = 'exercise-meta';
+  metaEl.textContent = ex.meta;
+  header.appendChild(nameEl);
+  header.appendChild(metaEl);
+  card.appendChild(header);
+
+  // Sequence display
+  const seqEl = document.createElement('div');
+  seqEl.className = 'exercise-seq';
+  const noteEls = [];
+  ex.seq.forEach((sn, i) => {
+    const noteSpan = document.createElement('span');
+    noteSpan.className = 'seq-note';
+    noteSpan.textContent = `${sn.name}${sn.oct}`;
+    noteSpan.addEventListener('click', () => {
+      const nd = getNoteByName(sn.name, sn.oct);
+      if (nd) playNote(nd.freq, { classList:{add:()=>{},remove:()=>{},contains:()=>false}, innerHTML:'' });
+    });
+    noteEls.push(noteSpan);
+    seqEl.appendChild(noteSpan);
+    if (i < ex.seq.length - 1) {
+      const arr = document.createElement('span');
+      arr.className = 'seq-arrow';
+      arr.textContent = '→';
+      seqEl.appendChild(arr);
+    }
+  });
+  card.appendChild(seqEl);
+
+  // Staff
+  const origStaff = buildStaff(ex.seq);
+  let staffNotes = origStaff.noteGroups;
+  const staffWrap = document.createElement('div');
+  staffWrap.className = 'staff-wrap';
+  staffWrap.appendChild(origStaff.svg);
+  card.appendChild(staffWrap);
+
+  // Controls
+  const controls = document.createElement('div');
+  controls.className = 'exercise-controls';
+  const playBtn = document.createElement('button');
+  playBtn.className = 'ex-btn';
+  playBtn.textContent = '▶ Грати';
+  const loopBtn = document.createElement('button');
+  loopBtn.className = 'ex-btn';
+  loopBtn.textContent = '⟳';
+  loopBtn.title = 'Циклічно';
+  loopBtn.style.padding = '0.3rem 0.5rem';
+  let loopOn = false;
+  loopBtn.addEventListener('click', () => {
+    loopOn = !loopOn;
+    loopBtn.classList.toggle('loop-on', loopOn);
+  });
+  const tempoLabel = document.createElement('div');
+  tempoLabel.className = 'ex-tempo';
+  const tempoVal = document.createElement('span');
+  tempoVal.textContent = '72 bpm';
+  const tempoSlider = document.createElement('input');
+  tempoSlider.type = 'range';
+  tempoSlider.min = 40; tempoSlider.max = 160; tempoSlider.value = 72;
+  tempoSlider.addEventListener('input', () => { tempoVal.textContent = `${tempoSlider.value} bpm`; });
+  tempoLabel.appendChild(tempoSlider);
+  tempoLabel.appendChild(tempoVal);
+
+  playBtn.addEventListener('click', () => {
+    if (playBtn.classList.contains('ex-playing')) {
+      if (seqStopper) { seqStopper(); seqStopper = null; }
+      stopCurrent();
+      playBtn.classList.remove('ex-playing');
+      playBtn.textContent = '▶ Грати';
+      noteEls.forEach(el => el.classList.remove('seq-active'));
+      restoreMainStaff();
+      return;
+    }
+    stopAllDrills();
+    if (seqStopper) { seqStopper(); seqStopper = null; }
+    document.querySelectorAll('.ex-btn.ex-playing').forEach(b => {
+      b.classList.remove('ex-playing');
+      b.textContent = '▶ Грати';
+    });
+    playBtn.classList.add('ex-playing');
+    playBtn.textContent = '■ Стоп';
+    restoreMainStaff();
+    playSequence(ex.seq, parseInt(tempoSlider.value), playBtn, noteEls, loopOn, staffNotes);
+  });
+
+  controls.appendChild(playBtn);
+  controls.appendChild(loopBtn);
+  controls.appendChild(tempoLabel);
+  card.appendChild(controls);
+
+  // Description
+  const desc = document.createElement('div');
+  desc.className = 'exercise-desc';
+  desc.textContent = ex.desc;
+  card.appendChild(desc);
+
+  // Helper: restore main exercise staff
+  function restoreMainStaff() {
+    staffWrap.innerHTML = '';
+    const rebuilt = buildStaff(ex.seq);
+    staffNotes = rebuilt.noteGroups;
+    staffWrap.appendChild(rebuilt.svg);
+  }
+
+  return { card, staffWrap, tempoSlider, restoreMainStaff };
+}
+
+function appendDrillPanel(card, staffWrap, tempoSlider, restoreMainStaff, drillKey, drillLabel, chainFn) {
+  const drillOpen = lsGet(drillKey, false);
+
+  const toggle = document.createElement('div');
+  toggle.className = 'drill-toggle';
+  toggle.innerHTML = `<span>${drillOpen ? '▾' : '▸'}</span> ${drillLabel}`;
+
+  const content = document.createElement('div');
+  content.className = 'drill-content' + (drillOpen ? ' open' : '');
+
+  const rows = document.createElement('div');
+  rows.className = 'drill-rows';
+
+  let activeDrillBtn = null;
+  let activeDrillRow = null;
+
+  DRILL_BASE_NOTES.forEach(base => {
+    const chain = chainFn(base.name, base.oct);
+
+    const row = document.createElement('div');
+    row.className = 'drill-row';
+
+    const baseLabel = document.createElement('span');
+    baseLabel.className = 'drill-base';
+    baseLabel.innerHTML = `${base.name}<sup>${base.oct}</sup>`;
+    row.appendChild(baseLabel);
+
+    const chainContainer = document.createElement('span');
+    chainContainer.className = 'drill-chain';
+    const noteSpans = [];
+    chain.forEach((n, i) => {
+      const span = document.createElement('span');
+      span.className = 'drill-seq-note';
+      span.innerHTML = `${n.name}<sup>${n.oct}</sup>`;
+      noteSpans.push(span);
+      chainContainer.appendChild(span);
+      if (i < chain.length - 1) {
+        const arrow = document.createElement('span');
+        arrow.className = 'drill-seq-arrow';
+        arrow.textContent = '→';
+        chainContainer.appendChild(arrow);
+      }
+    });
+    row.appendChild(chainContainer);
+
+    const btn = document.createElement('button');
+    btn.className = 'drill-play-btn';
+    btn.textContent = '▶';
+    btn.title = 'Грати';
+    row.appendChild(btn);
+
+    const loopBtn = document.createElement('button');
+    loopBtn.className = 'drill-play-btn drill-loop-btn';
+    loopBtn.textContent = '⟳';
+    loopBtn.title = 'Грати циклічно';
+    row.appendChild(loopBtn);
+
+    function stopDrillRow() {
+      if (seqStopper) { seqStopper(); seqStopper = null; }
+      stopCurrent();
+      btn.classList.remove('playing');
+      btn.textContent = '▶';
+      loopBtn.classList.remove('playing');
+      loopBtn.textContent = '⟳';
+      row.classList.remove('playing');
+      noteSpans.forEach(s => s.classList.remove('seq-active'));
+      restoreMainStaff();
+      activeDrillBtn = null; activeDrillRow = null;
+    }
+
+    function startDrillPlayback(isLoop, triggerBtn, idleText) {
+      if (triggerBtn.classList.contains('playing')) { stopDrillRow(); return; }
+
+      stopAllDrills();
+      if (seqStopper) { seqStopper(); seqStopper = null; }
+      stopCurrent();
+      document.querySelectorAll('.ex-btn.ex-playing').forEach(b => {
+        b.classList.remove('ex-playing'); b.textContent = '▶ Грати';
+      });
+
+      activeDrillBtn = triggerBtn;
+      activeDrillRow = row;
+      triggerBtn.classList.add('playing');
+      triggerBtn.textContent = '■';
+      row.classList.add('playing');
+
+      const drillStaff = buildStaff(chain);
+      staffWrap.innerHTML = '';
+      staffWrap.appendChild(drillStaff.svg);
+
+      playSequence(
+        chain, parseInt(tempoSlider.value),
+        { classList: { contains: () => false, add: () => {}, remove: () => {} }, textContent: '' },
+        noteSpans, isLoop, drillStaff.noteGroups,
+        () => {
+          triggerBtn.classList.remove('playing');
+          triggerBtn.textContent = idleText;
+          row.classList.remove('playing');
+          restoreMainStaff();
+          activeDrillBtn = null; activeDrillRow = null;
+        }
+      );
+    }
+
+    btn.addEventListener('click', () => startDrillPlayback(false, btn, '▶'));
+    loopBtn.addEventListener('click', () => startDrillPlayback(true, loopBtn, '⟳'));
+
+    rows.appendChild(row);
+  });
+
+  content.appendChild(rows);
+  toggle.addEventListener('click', () => {
+    const isOpen = content.classList.contains('open');
+    content.classList.toggle('open', !isOpen);
+    toggle.querySelector('span').textContent = isOpen ? '▸' : '▾';
+    lsSet(drillKey, !isOpen);
+  });
+
+  card.appendChild(toggle);
+  card.appendChild(content);
+
+  return {
+    stopDrills: () => {
+      if (activeDrillBtn) {
+        activeDrillBtn.classList.remove('playing');
+        activeDrillBtn.textContent = '▶';
+      }
+      if (activeDrillRow) activeDrillRow.classList.remove('playing');
+      activeDrillBtn = null; activeDrillRow = null;
+    }
+  };
+}
+
+const drillStoppers = [];
+
+function stopAllDrills() {
+  drillStoppers.forEach(fn => fn());
+}
+
 function renderExercises() {
   const container = document.getElementById('exercises');
   const section = document.createElement('div');
@@ -1074,139 +1454,66 @@ function renderExercises() {
   title.textContent = 'Вправи';
   section.appendChild(title);
 
-  EXERCISES.forEach((ex, exIdx) => {
-    const card = document.createElement('div');
-    card.className = 'exercise-card';
+  EXERCISES.forEach(ex => {
+    const { card, staffWrap, tempoSlider, restoreMainStaff } = buildExerciseCard(ex, section);
 
-    // Header
-    const header = document.createElement('div');
-    header.className = 'exercise-header';
-    const nameEl = document.createElement('div');
-    nameEl.className = 'exercise-name';
-    nameEl.textContent = ex.name;
-    const metaEl = document.createElement('div');
-    metaEl.className = 'exercise-meta';
-    metaEl.textContent = ex.meta;
-    header.appendChild(nameEl);
-    header.appendChild(metaEl);
-    card.appendChild(header);
-
-    // Sequence display
-    const seqEl = document.createElement('div');
-    seqEl.className = 'exercise-seq';
-    const noteEls = [];
-
-    ex.seq.forEach((sn, i) => {
-      const noteSpan = document.createElement('span');
-      noteSpan.className = 'seq-note';
-      noteSpan.textContent = `${sn.name}${sn.oct}`;
-      noteSpan.addEventListener('click', () => {
-        const nd = getNoteByName(sn.name, sn.oct);
-        if (nd) playNote(nd.freq, { classList:{add:()=>{},remove:()=>{},contains:()=>false}, innerHTML:'' });
-      });
-      noteEls.push(noteSpan);
-      seqEl.appendChild(noteSpan);
-
-      if (i < ex.seq.length - 1) {
-        const arr = document.createElement('span');
-        arr.className = 'seq-arrow';
-        arr.textContent = '→';
-        seqEl.appendChild(arr);
-      }
-    });
-    card.appendChild(seqEl);
-
-    // Staff
-    const { svg: staffSvg, noteGroups: staffNotes } = buildStaff(ex.seq);
-    const staffWrap = document.createElement('div');
-    staffWrap.className = 'staff-wrap';
-    staffWrap.appendChild(staffSvg);
-    card.appendChild(staffWrap);
-
-    // Controls
-    const controls = document.createElement('div');
-    controls.className = 'exercise-controls';
-
-    const playBtn = document.createElement('button');
-    playBtn.className = 'ex-btn';
-    playBtn.textContent = '▶ Грати';
-
-    const loopBtn = document.createElement('button');
-    loopBtn.className = 'ex-btn';
-    loopBtn.textContent = '⟳';
-    loopBtn.title = 'Циклічно';
-    loopBtn.style.padding = '0.3rem 0.5rem';
-    let loopOn = false;
-    loopBtn.addEventListener('click', () => {
-      loopOn = !loopOn;
-      loopBtn.classList.toggle('loop-on', loopOn);
-    });
-
-    const tempoLabel = document.createElement('div');
-    tempoLabel.className = 'ex-tempo';
-
-    const tempoVal = document.createElement('span');
-    tempoVal.textContent = '72 bpm';
-
-    const tempoSlider = document.createElement('input');
-    tempoSlider.type = 'range';
-    tempoSlider.min = 40; tempoSlider.max = 160; tempoSlider.value = 72;
-    tempoSlider.addEventListener('input', () => { tempoVal.textContent = `${tempoSlider.value} bpm`; });
-
-    tempoLabel.appendChild(tempoSlider);
-    tempoLabel.appendChild(tempoVal);
-
-    playBtn.addEventListener('click', () => {
-      if (playBtn.classList.contains('ex-playing')) {
-        if (seqStopper) { seqStopper(); seqStopper = null; }
-        stopCurrent();
-        playBtn.classList.remove('ex-playing');
-        playBtn.textContent = '▶ Грати';
-        noteEls.forEach(el => el.classList.remove('seq-active'));
-        return;
-      }
-      // Stop other exercises
-      if (seqStopper) { seqStopper(); seqStopper = null; }
-      document.querySelectorAll('.ex-btn.ex-playing').forEach(b => {
-        b.classList.remove('ex-playing');
-        b.textContent = '▶ Грати';
-      });
-
-      playBtn.classList.add('ex-playing');
-      playBtn.textContent = '■ Стоп';
-      playSequence(ex.seq, parseInt(tempoSlider.value), playBtn, noteEls, loopOn, staffNotes);
-    });
-
-    controls.appendChild(playBtn);
-    controls.appendChild(loopBtn);
-    controls.appendChild(tempoLabel);
-    card.appendChild(controls);
-
-    // Description
-    const desc = document.createElement('div');
-    desc.className = 'exercise-desc';
-    desc.textContent = ex.desc;
-    card.appendChild(desc);
+    if (DRILL_INTERVALS[ex.name] !== undefined) {
+      const intervalSteps = DRILL_INTERVALS[ex.name];
+      const { stopDrills } = appendDrillPanel(
+        card, staffWrap, tempoSlider, restoreMainStaff,
+        'recorder_drill_' + ex.name,
+        DRILL_NAMES[ex.name],
+        (name, oct) => buildChain(name, oct, intervalSteps)
+      );
+      drillStoppers.push(stopDrills);
+    }
 
     section.appendChild(card);
   });
+
+  // 1–4–5 card
+  const { card: card145, staffWrap: sw145, tempoSlider: ts145, restoreMainStaff: restore145 } =
+    buildExerciseCard(EXERCISE_145, section);
+  const { stopDrills: stop145 } = appendDrillPanel(
+    card145, sw145, ts145, restore145,
+    'recorder_drill_1-4-5',
+    'По ступенях',
+    (name, oct) => build145Chain(name, oct)
+  );
+  drillStoppers.push(stop145);
+  section.appendChild(card145);
 
   container.appendChild(section);
 }
 
 function render() {
-  const app = document.getElementById('app');
+  const container = document.getElementById('notes-section');
+  const notesOpen = lsGet('recorder_notes_open', false);
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'notes-wrapper';
+
+  const toggle = document.createElement('div');
+  toggle.className = 'section-toggle';
+  toggle.innerHTML = `<span class="toggle-arrow">${notesOpen ? '▾' : '▸'}</span>&nbsp;Ноти`;
+
+  const content = document.createElement('div');
+  content.className = 'notes-collapsible' + (notesOpen ? ' open' : '');
+
   [1, 2, 3].forEach(oct => {
     const notes = NOTES.filter(n => n.oct === oct);
     if (!notes.length) return;
 
     const section = document.createElement('div');
     section.className = 'octave-section';
+    const paddingDiv = document.createElement('div');
+    paddingDiv.style.cssText = 'padding-top:1.5rem';
 
     const label = document.createElement('div');
     label.className = 'octave-label';
     label.textContent = `${oct} октава`;
-    section.appendChild(label);
+    paddingDiv.appendChild(label);
+    section.appendChild(paddingDiv);
 
     const grid = document.createElement('div');
     grid.className = 'notes-grid';
@@ -1219,8 +1526,33 @@ function render() {
       section.appendChild(hr);
     }
 
-    app.appendChild(section);
+    content.appendChild(section);
   });
+
+  // Legend
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  [['closed','закрито'],['','відкрито'],['half','напівзакрито']].forEach(([cls, label]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    const hole = document.createElement('div');
+    hole.className = 'legend-hole' + (cls ? ' ' + cls : '');
+    item.appendChild(hole);
+    item.appendChild(document.createTextNode(label));
+    legend.appendChild(item);
+  });
+  content.appendChild(legend);
+
+  toggle.addEventListener('click', () => {
+    const isOpen = content.classList.contains('open');
+    content.classList.toggle('open', !isOpen);
+    toggle.querySelector('.toggle-arrow').textContent = isOpen ? '▸' : '▾';
+    lsSet('recorder_notes_open', !isOpen);
+  });
+
+  wrapper.appendChild(toggle);
+  wrapper.appendChild(content);
+  container.appendChild(wrapper);
 }
 
 render();
