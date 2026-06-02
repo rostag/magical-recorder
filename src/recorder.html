@@ -1,1568 +1,2075 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Барокова сопрано — аплікатури</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@300;400&display=swap');
-
-  /* Light theme — default */
-  :root {
-    --bg: #f5f0e8;
-    --surface: #ffffff;
-    --surface2: #ede8de;
-    --gold: #7a5c10;
-    --gold-dim: #a07c30;
-    --cream: #2c2416;
-    --cream-dim: #6a5a40;
-    --closed: #7a5c10;
-    --open: transparent;
-    --hole-border: #7a5c10;
-    --border: #d4caba;
-    --divider: #d4caba;
-    --seq-active-bg: #1a1000;
-    --seq-active-color: #ffffff;
-    --seq-active-border: #1a1000;
-    --staff-active-fill: #1a1000;
-    --staff-active-glow: rgba(0,0,0,0.45);
-    --loop-on-color: #b33000;
-    --loop-on-border: #b33000;
-    --card-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  }
-
-  /* Dark theme */
-  :root.dark {
-    --bg: #0e0c0a;
-    --surface: #1a1714;
-    --surface2: #242018;
-    --gold: #c9a84c;
-    --gold-dim: #7a6230;
-    --cream: #e8dfc8;
-    --cream-dim: #8a8070;
-    --closed: #c9a84c;
-    --open: transparent;
-    --hole-border: #c9a84c;
-    --border: #2e2920;
-    --divider: #2e2920;
-    --seq-active-bg: #2a2010;
-    --seq-active-color: #c9a84c;
-    --seq-active-border: #c9a84c;
-    --staff-active-fill: #c9a84c;
-    --staff-active-glow: rgba(201,168,76,0.7);
-    --loop-on-color: #c9a84c;
-    --loop-on-border: #c9a84c;
-    --card-shadow: none;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--cream);
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    min-height: 100vh;
-    padding: 2rem 1rem 4rem;
-  }
-
-  header { text-align: center; margin-bottom: 3rem; }
-
-  header h1 {
-    font-size: clamp(1.8rem, 5vw, 3rem);
-    font-weight: 300;
-    letter-spacing: 0.15em;
-    color: var(--gold);
-    font-style: italic;
-  }
-
-  header p {
-    font-size: 0.9rem;
-    color: var(--cream-dim);
-    letter-spacing: 0.2em;
-    margin-top: 0.5rem;
-    text-transform: uppercase;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 300;
-  }
-
-  .octave-section { margin-bottom: 3rem; }
-
-  .octave-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--gold-dim);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-    padding-left: 0.5rem;
-    border-left: 2px solid var(--gold-dim);
-  }
-
-  .notes-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
-  }
-
-  .note-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-  }
-
-  .note-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px 4px 0 0;
-    padding: 1rem 0.8rem 0.6rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.7rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: 78px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--card-shadow);
-  }
-
-  .note-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--gold);
-    transform: scaleX(0);
-    transition: transform 0.25s ease;
-  }
-
-  .note-card:hover { background: var(--surface2); border-color: var(--gold-dim); }
-  .note-card.active { background: var(--surface2); border-color: var(--gold-dim); border-bottom-color: var(--surface2); }
-  .note-card:hover::before, .note-card.active::before { transform: scaleX(1); }
-
-  .note-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--gold);
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-  }
-  .note-name sup { font-size: 0.65em; color: var(--gold-dim); }
-
-  /* Play button inside card */
-  .play-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1px solid var(--gold-dim);
-    background: transparent;
-    color: var(--gold);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
-    padding: 0;
-  }
-
-  .play-btn:hover {
-    background: var(--gold);
-    color: var(--bg);
-    border-color: var(--gold);
-  }
-
-  .play-btn.playing {
-    background: var(--gold);
-    color: var(--bg);
-    border-color: var(--gold);
-    animation: pulse 0.6s ease infinite alternate;
-  }
-
-  @keyframes pulse {
-    from { box-shadow: 0 0 4px rgba(201,168,76,0.3); }
-    to   { box-shadow: 0 0 12px rgba(201,168,76,0.7); }
-  }
-
-  .flute-diagram {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
-  }
-
-  .hole-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .hole-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.5rem;
-    color: var(--cream-dim);
-    width: 16px;
-    text-align: right;
-  }
-
-  .hole {
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    border: 1.5px solid var(--hole-border);
-    background: var(--open);
-    flex-shrink: 0;
-  }
-
-  .hole.closed { background: var(--closed); }
-  .hole.half   { background: linear-gradient(135deg, var(--closed) 50%, transparent 50%); }
-
-  .bell-row .hole { width: 10px; height: 10px; border-radius: 2px; }
-
-  .inline-detail {
-    display: none;
-    background: var(--surface2);
-    border: 1px solid var(--gold-dim);
-    border-top: none;
-    border-radius: 0 0 4px 4px;
-    padding: 0.7rem 0.6rem;
-    width: 78px;
-    animation: fadeIn 0.2s ease;
-  }
-
-  .inline-detail.visible { display: block; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .detail-ratio {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--gold-dim);
-    text-align: center;
-    margin-bottom: 0.4rem;
-  }
-
-  .detail-freq {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    color: var(--cream-dim);
-    text-align: center;
-    margin-bottom: 0.4rem;
-  }
-
-  .detail-fingers {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
-    line-height: 1.6;
-  }
-
-  .detail-fingers .f-closed { color: var(--gold); }
-  .detail-fingers .f-half   { color: var(--gold-dim); }
-  .detail-fingers .f-open   { color: #444; }
-
-  .legend {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-    margin-top: 3rem;
-    flex-wrap: wrap;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--cream-dim);
-  }
-
-  .legend-hole {
-    width: 13px; height: 13px;
-    border-radius: 50%;
-    border: 1.5px solid var(--hole-border);
-  }
-
-  .legend-hole.closed { background: var(--closed); }
-  .legend-hole.half   { background: linear-gradient(135deg, var(--closed) 50%, transparent 50%); }
-
-  hr.divider { border: none; border-top: 1px solid var(--divider); margin: 2rem 0; }
-
-  /* --- Exercises --- */
-  .exercises-section {
-    max-width: 700px;
-    margin: 3rem auto 0;
-  }
-
-  .exercises-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--gold-dim);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-    padding-left: 0.5rem;
-    border-left: 2px solid var(--gold-dim);
-  }
-
-  .exercise-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1.2rem 1.4rem;
-    margin-bottom: 1rem;
-  }
-
-  .exercise-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.8rem;
-  }
-
-  .exercise-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--gold);
-    font-style: italic;
-  }
-
-  .exercise-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--cream-dim);
-  }
-
-  .exercise-seq {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.3rem;
-    margin-bottom: 1rem;
-  }
-
-  .seq-note {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--cream);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 0.2rem 0.5rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .seq-note:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .seq-note.seq-active { border-color: var(--seq-active-border); color: var(--seq-active-color); background: var(--seq-active-bg); font-weight: 700; }
-
-  .seq-arrow {
-    color: var(--gold-dim);
-    font-size: 0.7rem;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .exercise-controls {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-  }
-
-  .ex-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--cream-dim);
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 0.3rem 0.7rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    letter-spacing: 0.05em;
-  }
-
-  .ex-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .ex-btn.ex-playing { border-color: var(--gold); color: var(--gold); }
-  .ex-btn.loop-on { border-color: var(--loop-on-border); color: var(--loop-on-color); background: var(--seq-active-bg); font-weight: 700; }
-
-  .ex-tempo {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--cream-dim);
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-left: auto;
-  }
-
-  .ex-tempo input[type=range] {
-    width: 70px;
-    accent-color: var(--gold);
-  }
-
-  .exercise-desc {
-    font-size: 0.85rem;
-    color: var(--cream-dim);
-    font-style: italic;
-    margin-top: 0.6rem;
-    line-height: 1.5;
-  }
-
-  /* Staff */
-  .staff-wrap {
-    margin: 0.8rem 0 0.4rem;
-    overflow-x: auto;
-    overflow-y: visible;
-    padding-bottom: 0.3rem;
-  }
-
-  .staff-svg { display: block; overflow: visible; }
-
-  .staff-line { stroke: var(--cream-dim); stroke-width: 1; }
-  .staff-ledger { stroke: var(--cream-dim); stroke-width: 1; }
-  .staff-clef { fill: var(--cream-dim); font-size: 38px; }
-
-  .staff-note-head {
-    fill: var(--cream-dim);
-    stroke: none;
-    transition: stroke 0.1s ease, stroke-width 0.1s ease;
-  }
-  .staff-note-head.active {
-    fill: var(--cream-dim);
-    stroke: var(--staff-active-fill);
-    stroke-width: 2;
-    filter: none;
-  }
-  .staff-note-stem { stroke: var(--cream-dim); stroke-width: 1.5; transition: stroke 0.1s ease; }
-  .staff-note-stem.active { stroke: var(--staff-active-fill); stroke-width: 2.5; }
-  .staff-note-label {
-    fill: var(--cream-dim);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    text-anchor: middle;
-    transition: fill 0.1s ease;
-  }
-  .staff-note-label.active {
-    fill: var(--staff-active-fill);
-    font-weight: 700;
-    font-size: 9px;
-  }
-
-  .staff-note-bg { fill: transparent; }
-  .staff-note-bg.active { fill: transparent; }
-
-  /* Theme toggle */
-  .theme-toggle {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 0.35rem 0.8rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--cream-dim);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-  .theme-toggle:hover { border-color: var(--gold-dim); color: var(--gold); }
-
-  /* --- Notes collapsible wrapper --- */
-  .notes-wrapper {
-    max-width: 700px;
-    margin: 0 auto 2rem;
-  }
-
-  .section-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--gold-dim);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    cursor: pointer;
-    padding: 0.5rem 0.5rem;
-    border-bottom: 1px solid var(--divider);
-    margin-bottom: 0;
-    user-select: none;
-    transition: color 0.15s ease;
-  }
-  .section-toggle:hover { color: var(--gold); }
-
-  .notes-collapsible { display: none; }
-  .notes-collapsible.open { display: block; }
-
-  /* --- Drill panels --- */
-  .drill-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--cream-dim);
-    cursor: pointer;
-    padding: 0.5rem 0 0;
-    margin-top: 0.8rem;
-    border-top: 1px solid var(--border);
-    user-select: none;
-    transition: color 0.15s ease;
-    letter-spacing: 0.05em;
-  }
-  .drill-toggle:hover { color: var(--gold); }
-
-  .drill-content {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.25s ease;
-  }
-  .drill-content.open { max-height: 1200px; }
-
-  .drill-rows {
-    padding-top: 0.6rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .drill-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    color: var(--cream-dim);
-    padding: 0.2rem 0.4rem;
-    border-radius: 3px;
-    transition: background 0.1s ease;
-  }
-  .drill-row:hover { background: var(--surface2); }
-  .drill-row.playing { background: var(--surface2); color: var(--cream); }
-
-  .drill-base { display: none; }
-
-  .drill-chain { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
-
-  .drill-seq-note {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.82rem;
-    color: var(--cream);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 0.2rem 0.5rem;
-    transition: all 0.15s ease;
-    display: inline-block;
-    line-height: 1.3;
-  }
-  .drill-seq-note.seq-active {
-    border-color: var(--seq-active-border);
-    color: var(--seq-active-color);
-    background: var(--seq-active-bg);
-    font-weight: 700;
-  }
-
-  .drill-seq-arrow {
-    color: var(--gold-dim);
-    font-size: 0.75rem;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .drill-play-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--cream-dim);
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 0.2rem 0.52rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
-  }
-  .drill-play-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
-  .drill-play-btn.playing { border-color: var(--gold); color: var(--gold); }
-  .drill-loop-btn.playing { border-color: var(--loop-on-border); color: var(--loop-on-color); }
-</style>
-</head>
-<body>
-
-<button class="theme-toggle" id="themeBtn">🌙 темна</button>
-<header>
-  <h1>Барокова сопрано</h1>
-  <p>Таблиця аплікатур · До¹ — Ля³</p>
-</header>
-
-<div id="notes-section"></div>
-
-<div id="exercises"></div>
-
-<script>
-// --- Audio engine ---
-let audioCtx = null;
-let currentNodes = null;
-
-function getCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-
-function stopCurrent() {
-  if (currentNodes) {
-    try {
-      currentNodes.gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
-      const n = currentNodes;
-      setTimeout(() => { try { n.osc1.stop(); n.osc2.stop(); n.osc3.stop(); } catch(e){} }, 300);
-    } catch(e){}
-    currentNodes = null;
-  }
-  document.querySelectorAll('.play-btn.playing').forEach(b => {
-    b.classList.remove('playing');
-    b.innerHTML = '&#9654;';
-  });
-}
-
-// --- localStorage helpers ---
-function lsGet(key, defaultVal) {
-  try { const v = localStorage.getItem(key); return v === null ? defaultVal : v === 'true'; } catch(e) { return defaultVal; }
-}
-function lsSet(key, val) {
-  try { localStorage.setItem(key, val ? 'true' : 'false'); } catch(e) {}
-}
-
-// Recorder-like timbre: fundamental + harmonics shaped to flute
-function playNote(freq, btn) {
-  stopCurrent();
-  const ctx = getCtx();
-  const t = ctx.currentTime;
-
-  // Master gain
-  const gainNode = ctx.createGain();
-  gainNode.gain.setValueAtTime(0, t);
-  gainNode.gain.linearRampToValueAtTime(0.22, t + 0.06);  // fast attack
-  gainNode.gain.setTargetAtTime(0.18, t + 0.06, 0.3);      // settle
-
-  // Slight vibrato via LFO
-  const lfo = ctx.createOscillator();
-  lfo.frequency.value = 5.5;
-  const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 0;
-  lfoGain.gain.setTargetAtTime(freq * 0.004, t + 0.15, 0.2); // vibrato fades in
-  lfo.connect(lfoGain);
-
-  // Fundamental
-  const osc1 = ctx.createOscillator();
-  osc1.type = 'sine';
-  osc1.frequency.value = freq;
-  lfoGain.connect(osc1.frequency);
-  const g1 = ctx.createGain(); g1.gain.value = 1.0;
-  osc1.connect(g1);
-
-  // 2nd harmonic (softer — recorder has weak evens)
-  const osc2 = ctx.createOscillator();
-  osc2.type = 'sine';
-  osc2.frequency.value = freq * 2;
-  lfoGain.connect(osc2.frequency);
-  const g2 = ctx.createGain(); g2.gain.value = 0.18;
-  osc2.connect(g2);
-
-  // 3rd harmonic (stronger odd)
-  const osc3 = ctx.createOscillator();
-  osc3.type = 'sine';
-  osc3.frequency.value = freq * 3;
-  lfoGain.connect(osc3.frequency);
-  const g3 = ctx.createGain(); g3.gain.value = 0.10;
-  osc3.connect(g3);
-
-  // Breath noise via filtered white noise
-  const bufSize = ctx.sampleRate * 2;
-  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-  const data = buf.getChannelData(0);
-  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-  const noise = ctx.createBufferSource();
-  noise.buffer = buf;
-  noise.loop = true;
-  const noiseFilter = ctx.createBiquadFilter();
-  noiseFilter.type = 'bandpass';
-  noiseFilter.frequency.value = freq * 1.5;
-  noiseFilter.Q.value = 0.8;
-  const noiseGain = ctx.createGain();
-  noiseGain.gain.value = 0.018;
-  noise.connect(noiseFilter);
-  noiseFilter.connect(noiseGain);
-
-  // Mix everything
-  [g1, g2, g3, noiseGain].forEach(g => g.connect(gainNode));
-  gainNode.connect(ctx.destination);
-
-  // Start
-  lfo.start(t); osc1.start(t); osc2.start(t); osc3.start(t); noise.start(t);
-
-  currentNodes = { gainNode, osc1, osc2, osc3, lfo, noise };
-
-  btn.classList.add('playing');
-  btn.innerHTML = '&#9646;&#9646;';
-
-  // Auto-stop after 1.8s
-  const stopAt = t + 1.8;
-  gainNode.gain.setTargetAtTime(0, stopAt - 0.15, 0.08);
-  setTimeout(() => {
-    try { osc1.stop(); osc2.stop(); osc3.stop(); lfo.stop(); noise.stop(); } catch(e){}
-    if (currentNodes && currentNodes.osc1 === osc1) {
-      currentNodes = null;
-      btn.classList.remove('playing');
-      btn.innerHTML = '&#9654;';
-    }
-  }, 1900);
-}
-
-// --- Note data ---
-// freq: Hz (A4=440, equal temperament, recorder soprano sounds one octave higher than written)
-// We treat oct 1 as C5 (523.25 Hz) since soprano recorder is a C instrument sounding high
-const C5 = 523.25;
-function et(semitones) { return C5 * Math.pow(2, semitones / 12); }
-
-const NOTES = [
-  // Octave 1 (sounds C5–B5)
-  { name:'До',   oct:1, freq: et(0),  f:['•','•','•','•','•','•','•','•'], ratio:'1:1'  },
-  { name:'Ре',   oct:1, freq: et(2),  f:['•','•','•','•','•','•','•','о'], ratio:'9:8'  },
-  { name:'Мі',   oct:1, freq: et(4),  f:['•','•','•','•','•','•','о','о'], ratio:'5:4'  },
-  { name:'Фа',   oct:1, freq: et(5),  f:['•','•','•','•','о','•','о','о'], ratio:'4:3'  },
-  { name:'Соль', oct:1, freq: et(7),  f:['•','•','•','•','о','о','о','о'], ratio:'3:2'  },
-  { name:'Ля',   oct:1, freq: et(9),  f:['•','•','•','о','о','о','о','о'], ratio:'5:3'  },
-  { name:'Сі',   oct:1, freq: et(11), f:['•','•','о','о','о','о','о','о'], ratio:'15:8' },
-  // Octave 2 (sounds C6–B6)
-  { name:'До',   oct:2, freq: et(12), f:['•','о','•','о','о','о','о','о'], ratio:'2:1'  },
-  { name:'Ре',   oct:2, freq: et(14), f:['о','о','•','о','о','о','о','о'], ratio:'9:4'  },
-  { name:'Мі',   oct:2, freq: et(16), f:['/','•','•','•','•','•','о','о'], ratio:'5:2'  },
-  { name:'Фа',   oct:2, freq: et(17), f:['/','•','•','•','о','•','о','о'], ratio:'8:3'  },
-  { name:'Соль', oct:2, freq: et(19), f:['/','•','•','•','о','о','о','о'], ratio:'3:1'  },
-  { name:'Ля',   oct:2, freq: et(21), f:['/','•','•','о','о','о','о','о'], ratio:'10:3' },
-  { name:'Сі',   oct:2, freq: et(23), f:['/','•','•','о','•','•','о','о'], ratio:'15:4' },
-  // Octave 3 (sounds C7–A7)
-  { name:'До',   oct:3, freq: et(24), f:['/','•','о','о','•','•','о','о'],      ratio:'4:1'  },
-  { name:'Ре',   oct:3, freq: et(26), f:['/','•','о','•','•','о','•','•'],      ratio:'9:2'  },
-  { name:'Мі',   oct:3, freq: et(28), f:['/','о','•','•','о','•','•','о'],      ratio:'5:1'  },
-  { name:'Фа',   oct:3, freq: et(29), f:['/','•','•','о','•','•','о','о','•'], ratio:'16:3', bell:true },
-  { name:'Соль', oct:3, freq: et(31), f:['/','•','о','•','•','о','•','о','•'], ratio:'6:1',  bell:true },
-  { name:'Ля',   oct:3, freq: et(33), f:['/','•','о','о','о','•','•','о'],      ratio:'20:3' },
-];
-
-const HOLE_LABELS = ['Вел','1','2','3','4','5','6','7'];
-
-function buildNoteCol(note) {
-  const col = document.createElement('div');
-  col.className = 'note-col';
-
-  const card = document.createElement('div');
-  card.className = 'note-card';
-
-  // Name
-  const nameEl = document.createElement('div');
-  nameEl.className = 'note-name';
-  nameEl.innerHTML = `${note.name}<sup>${note.oct}</sup>`;
-  card.appendChild(nameEl);
-
-  // Play button
-  const playBtn = document.createElement('button');
-  playBtn.className = 'play-btn';
-  playBtn.innerHTML = '&#9654;';
-  playBtn.title = `Грати ${note.name}${note.oct}`;
-  playBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (playBtn.classList.contains('playing')) {
-      stopCurrent();
-    } else {
-      playNote(note.freq, playBtn);
-    }
-  });
-  card.appendChild(playBtn);
-
-  // Fingering diagram
-  const diagram = document.createElement('div');
-  diagram.className = 'flute-diagram';
-
-  note.f.forEach((state, i) => {
-    if (i === 8) return;
-    const row = document.createElement('div');
-    row.className = 'hole-row';
-    const lbl = document.createElement('div');
-    lbl.className = 'hole-label';
-    lbl.textContent = HOLE_LABELS[i];
-    const hole = document.createElement('div');
-    hole.className = 'hole';
-    if (state === '•') hole.classList.add('closed');
-    else if (state === '/') hole.classList.add('half');
-    row.appendChild(lbl);
-    row.appendChild(hole);
-    diagram.appendChild(row);
-  });
-
-  if (note.bell && note.f[8]) {
-    const row = document.createElement('div');
-    row.className = 'hole-row bell-row';
-    const lbl = document.createElement('div');
-    lbl.className = 'hole-label';
-    lbl.textContent = 'B';
-    const hole = document.createElement('div');
-    hole.className = 'hole';
-    if (note.f[8] === '•') hole.classList.add('closed');
-    row.appendChild(lbl);
-    row.appendChild(hole);
-    diagram.appendChild(row);
-  }
-
-  card.appendChild(diagram);
-
-  // Inline detail
-  const detail = document.createElement('div');
-  detail.className = 'inline-detail';
-
-  const ratioEl = document.createElement('div');
-  ratioEl.className = 'detail-ratio';
-  ratioEl.textContent = note.ratio;
-  detail.appendChild(ratioEl);
-
-  const freqEl = document.createElement('div');
-  freqEl.className = 'detail-freq';
-  freqEl.textContent = `${Math.round(note.freq)} Hz`;
-  detail.appendChild(freqEl);
-
-  const fingersEl = document.createElement('div');
-  fingersEl.className = 'detail-fingers';
-  fingersEl.innerHTML = note.f.map((s, i) => {
-    if (i === 8 && !note.bell) return '';
-    const lbl = i === 8 ? 'B' : HOLE_LABELS[i];
-    const cls = s === '•' ? 'f-closed' : s === '/' ? 'f-half' : 'f-open';
-    const sym = s === '•' ? '●' : s === '/' ? '◑' : '○';
-    return `<span class="${cls}">${lbl}${sym}</span> `;
-  }).join('');
-  detail.appendChild(fingersEl);
-
-  // Toggle detail on card click
-  card.addEventListener('click', () => {
-    const isOpen = detail.classList.contains('visible');
-    document.querySelectorAll('.inline-detail.visible').forEach(d => d.classList.remove('visible'));
-    document.querySelectorAll('.note-card.active').forEach(c => c.classList.remove('active'));
-    if (!isOpen) {
-      detail.classList.add('visible');
-      card.classList.add('active');
-    }
-  });
-
-  col.appendChild(card);
-  col.appendChild(detail);
-  return col;
-}
-
-// --- Exercises ---
-const EXERCISES = [
-  {
-    name: 'Терції',
-    meta: 'крок +2',
-    desc: 'Обходить усі 7 ступенів через одну. Відчуй польот між нотами.',
-    seq: [
-      {name:'До',oct:1},{name:'Мі',oct:1},{name:'Соль',oct:1},{name:'Сі',oct:1},
-      {name:'Ре',oct:2},{name:'Фа',oct:2},{name:'Ля',oct:2},{name:'До',oct:2}
-    ]
-  },
-  {
-    name: 'Кварти',
-    meta: 'крок +3 · спіраль квінт назад',
-    desc: 'Великі стрибки. Зверни увагу на зміну регістру між Сі¹ і Мі².',
-    seq: [
-      {name:'До',oct:1},{name:'Фа',oct:1},{name:'Сі',oct:1},
-      {name:'Мі',oct:2},{name:'Ля',oct:2},{name:'Ре',oct:2},
-      {name:'Соль',oct:2},{name:'До',oct:2}
-    ]
-  },
-  {
-    name: 'Квінти',
-    meta: 'крок +4 · спіраль квінт',
-    desc: 'Основа тональності. До→Соль→Ре→Ля — кожен крок відчувається як рух вперед.',
-    seq: [
-      {name:'До',oct:1},{name:'Соль',oct:1},{name:'Ре',oct:2},
-      {name:'Ля',oct:2},{name:'Мі',oct:2},{name:'Сі',oct:2},{name:'До',oct:3}
-    ]
-  },
-  {
-    name: 'Сексти',
-    meta: 'крок +5',
-    desc: 'М\'який широкий стрибок. Менш напружений ніж квінта, але більший простір. До→Ля — класична мелодична фраза.',
-    seq: [
-      {name:'До',oct:1},{name:'Ля',oct:1},{name:'Ре',oct:1},{name:'Сі',oct:1},
-      {name:'Мі',oct:1},{name:'До',oct:2},{name:'Фа',oct:1},{name:'Ре',oct:2},
-      {name:'Соль',oct:1},{name:'Мі',oct:2}
-    ]
-  },
-  {
-    name: 'Септими',
-    meta: 'крок +6',
-    desc: 'Максимальна напруга в діатоніці. Великий стрибок — майже октава, але не дістає. Хочеться розв\'язання.',
-    seq: [
-      {name:'До',oct:1},{name:'Сі',oct:1},{name:'Ре',oct:1},{name:'До',oct:2},
-      {name:'Мі',oct:1},{name:'Ре',oct:2},{name:'Фа',oct:1},{name:'Мі',oct:2},
-      {name:'Соль',oct:1},{name:'Фа',oct:2}
-    ]
-  },
-];
-
-// --- Chain generation helpers ---
-const NOTE_NAMES = ['До','Ре','Мі','Фа','Соль','Ля','Сі'];
-const nameToIdx = {До:0,Ре:1,Мі:2,Фа:3,Соль:4,Ля:5,Сі:6};
-
-function noteInRange(name, oct) {
-  if (oct === 1 || oct === 2) return true;
-  if (oct === 3 && name === 'До') return true;
-  return false;
-}
-
-function stepNote(name, oct, delta) {
-  const raw = nameToIdx[name] + delta;
-  const newOct = oct + Math.floor(raw / 7);
-  const newName = NOTE_NAMES[((raw % 7) + 7) % 7];
-  return { name: newName, oct: newOct };
-}
-
-function buildChain(baseName, baseOct, intervalSteps, length) {
-  length = length === undefined ? 3 : length;
-  const chain = [{ name: baseName, oct: baseOct }];
-  for (let i = 0; i < length; i++) {
-    const cur = chain[chain.length - 1];
-    const up = stepNote(cur.name, cur.oct, intervalSteps);
-    if (noteInRange(up.name, up.oct)) {
-      chain.push(up);
-    } else {
-      chain.push(stepNote(cur.name, cur.oct, -intervalSteps));
-    }
-  }
-  return chain;
-}
-
-function build145Chain(baseName, baseOct) {
-  return [0, 3, 4, 7].map(offset => {
-    if (offset === 0) return { name: baseName, oct: baseOct };
-    const up = stepNote(baseName, baseOct, offset);
-    if (noteInRange(up.name, up.oct)) return up;
-    return stepNote(baseName, baseOct, -offset);
-  });
-}
-
-const DRILL_INTERVALS = { 'Терції': 2, 'Кварти': 3, 'Квінти': 4, 'Сексти': 5, 'Септими': 6 };
-const DRILL_NAMES = {
-  'Терції': 'Розтерцовка', 'Кварти': 'Розквартовка', 'Квінти': 'Розквінтовка',
-  'Сексти': 'Розсекстовка', 'Септими': 'Розсептимовка'
-};
-const DRILL_BASE_NOTES = [
-  {name:'До',oct:1},{name:'Ре',oct:1},{name:'Мі',oct:1},{name:'Фа',oct:1},
-  {name:'Соль',oct:1},{name:'Ля',oct:1},{name:'Сі',oct:1},{name:'До',oct:2}
-];
-
-const EXERCISE_145 = {
-  name: '1 — 4 — 5',
-  meta: 'тональності',
-  desc: 'До→Фа→Соль→До. Стабільність→відхід→очікування→повернення.',
-  seq: [{name:'До',oct:1},{name:'Фа',oct:1},{name:'Соль',oct:1},{name:'До',oct:2}]
-};
-
-let exTimers = {};
-
-function getNoteByName(name, oct) {
-  return NOTES.find(n => n.name === name && n.oct === oct);
-}
-
-let seqStopper = null;
-
-function playSequence(seqNotes, bpm, playBtn, activeSet, loop, staffNotes, onDone) {
-  const interval = (60 / bpm) * 1000;
-  let i = 0;
-  let stopped = false;
-
-  activeSet.forEach(el => el.classList.remove('seq-active'));
-  if (staffNotes) staffNotes.forEach(g => {
-    g.querySelectorAll('.staff-note-head,.staff-note-stem,.staff-note-label,.staff-note-bg').forEach(el => el.classList.remove('active'));
-  });
-
-  function step() {
-    if (stopped) return;
-    if (i >= seqNotes.length) {
-      if (loop) {
-        i = 0;
-      } else {
-        stopCurrent();
-        playBtn.classList.remove('ex-playing');
-        playBtn.textContent = '▶ Грати';
-        activeSet.forEach(el => el.classList.remove('seq-active'));
-        if (staffNotes) staffNotes.forEach(g => {
-          g.querySelectorAll('.staff-note-head,.staff-note-stem,.staff-note-label,.staff-note-bg').forEach(el => el.classList.remove('active'));
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Барокова сопрано — аплікатури</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@300;400&display=swap");
+
+      /* Light theme — default */
+      :root {
+        --bg: #f5f0e8;
+        --surface: #ffffff;
+        --surface2: #ede8de;
+        --gold: #7a5c10;
+        --gold-dim: #a07c30;
+        --cream: #2c2416;
+        --cream-dim: #6a5a40;
+        --closed: #7a5c10;
+        --open: transparent;
+        --hole-border: #7a5c10;
+        --border: #d4caba;
+        --divider: #d4caba;
+        --seq-active-bg: #1a1000;
+        --seq-active-color: #ffffff;
+        --seq-active-border: #1a1000;
+        --staff-active-fill: #1a1000;
+        --staff-active-glow: rgba(0, 0, 0, 0.45);
+        --loop-on-color: #b33000;
+        --loop-on-border: #b33000;
+        --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+
+      /* Dark theme */
+      :root.dark {
+        --bg: #0e0c0a;
+        --surface: #1a1714;
+        --surface2: #242018;
+        --gold: #c9a84c;
+        --gold-dim: #7a6230;
+        --cream: #e8dfc8;
+        --cream-dim: #8a8070;
+        --closed: #c9a84c;
+        --open: transparent;
+        --hole-border: #c9a84c;
+        --border: #2e2920;
+        --divider: #2e2920;
+        --seq-active-bg: #2a2010;
+        --seq-active-color: #c9a84c;
+        --seq-active-border: #c9a84c;
+        --staff-active-fill: #c9a84c;
+        --staff-active-glow: rgba(201, 168, 76, 0.7);
+        --loop-on-color: #c9a84c;
+        --loop-on-border: #c9a84c;
+        --card-shadow: none;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--cream);
+        font-family: "Cormorant Garamond", Georgia, serif;
+        min-height: 100vh;
+        padding: 2rem 1rem 4rem;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      header h1 {
+        font-size: clamp(1.8rem, 5vw, 3rem);
+        font-weight: 300;
+        letter-spacing: 0.15em;
+        color: var(--gold);
+        font-style: italic;
+      }
+
+      header p {
+        font-size: 0.9rem;
+        color: var(--cream-dim);
+        letter-spacing: 0.2em;
+        margin-top: 0.5rem;
+        text-transform: uppercase;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 300;
+      }
+
+      .octave-section {
+        margin-bottom: 3rem;
+      }
+
+      .octave-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--gold-dim);
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        padding-left: 0.5rem;
+        border-left: 2px solid var(--gold-dim);
+      }
+
+      .notes-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+      }
+
+      .note-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+      }
+
+      .note-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px 4px 0 0;
+        padding: 1rem 0.8rem 0.6rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.7rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 78px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+      }
+
+      .note-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--gold);
+        transform: scaleX(0);
+        transition: transform 0.25s ease;
+      }
+
+      .note-card:hover {
+        background: var(--surface2);
+        border-color: var(--gold-dim);
+      }
+      .note-card.active {
+        background: var(--surface2);
+        border-color: var(--gold-dim);
+        border-bottom-color: var(--surface2);
+      }
+      .note-card:hover::before,
+      .note-card.active::before {
+        transform: scaleX(1);
+      }
+
+      .note-name {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--gold);
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+      .note-name sup {
+        font-size: 0.65em;
+        color: var(--gold-dim);
+      }
+
+      /* Play button inside card */
+      .play-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid var(--gold-dim);
+        background: transparent;
+        color: var(--gold);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+        padding: 0;
+      }
+
+      .play-btn:hover {
+        background: var(--gold);
+        color: var(--bg);
+        border-color: var(--gold);
+      }
+
+      .play-btn.playing {
+        background: var(--gold);
+        color: var(--bg);
+        border-color: var(--gold);
+        animation: pulse 0.6s ease infinite alternate;
+      }
+
+      @keyframes pulse {
+        from {
+          box-shadow: 0 0 4px rgba(201, 168, 76, 0.3);
+        }
+        to {
+          box-shadow: 0 0 12px rgba(201, 168, 76, 0.7);
+        }
+      }
+
+      .flute-diagram {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+      }
+
+      .hole-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .hole-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.5rem;
+        color: var(--cream-dim);
+        width: 16px;
+        text-align: right;
+      }
+
+      .hole {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 1.5px solid var(--hole-border);
+        background: var(--open);
+        flex-shrink: 0;
+      }
+
+      .hole.closed {
+        background: var(--closed);
+      }
+      .hole.half {
+        background: linear-gradient(135deg, var(--closed) 50%, transparent 50%);
+      }
+
+      .bell-row .hole {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+      }
+
+      .inline-detail {
+        display: none;
+        background: var(--surface2);
+        border: 1px solid var(--gold-dim);
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        padding: 0.7rem 0.6rem;
+        width: 78px;
+        animation: fadeIn 0.2s ease;
+      }
+
+      .inline-detail.visible {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .detail-ratio {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--gold-dim);
+        text-align: center;
+        margin-bottom: 0.4rem;
+      }
+
+      .detail-freq {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.6rem;
+        color: var(--cream-dim);
+        text-align: center;
+        margin-bottom: 0.4rem;
+      }
+
+      .detail-fingers {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.6rem;
+        line-height: 1.6;
+      }
+
+      .detail-fingers .f-closed {
+        color: var(--gold);
+      }
+      .detail-fingers .f-half {
+        color: var(--gold-dim);
+      }
+      .detail-fingers .f-open {
+        color: #444;
+      }
+
+      .legend {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        margin-top: 3rem;
+        flex-wrap: wrap;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--cream-dim);
+      }
+
+      .legend-hole {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 1.5px solid var(--hole-border);
+      }
+
+      .legend-hole.closed {
+        background: var(--closed);
+      }
+      .legend-hole.half {
+        background: linear-gradient(135deg, var(--closed) 50%, transparent 50%);
+      }
+
+      hr.divider {
+        border: none;
+        border-top: 1px solid var(--divider);
+        margin: 2rem 0;
+      }
+
+      /* --- Exercises --- */
+      .exercises-section {
+        max-width: 700px;
+        margin: 3rem auto 0;
+      }
+
+      .exercises-title {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--gold-dim);
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+        padding-left: 0.5rem;
+        border-left: 2px solid var(--gold-dim);
+      }
+
+      .exercise-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+      }
+
+      .exercise-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+      }
+
+      .exercise-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--gold);
+        font-style: italic;
+      }
+
+      .exercise-meta {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--cream-dim);
+      }
+
+      .exercise-seq {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.3rem;
+        margin-bottom: 1rem;
+      }
+
+      .seq-note {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        color: var(--cream);
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 0.2rem 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .seq-note:hover {
+        border-color: var(--gold-dim);
+        color: var(--gold);
+      }
+      .seq-note.seq-active {
+        border-color: var(--seq-active-border);
+        color: var(--seq-active-color);
+        background: var(--seq-active-bg);
+        font-weight: 700;
+      }
+
+      .seq-arrow {
+        color: var(--gold-dim);
+        font-size: 0.7rem;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .exercise-controls {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+      }
+
+      .ex-btn {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        color: var(--cream-dim);
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 0.3rem 0.7rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        letter-spacing: 0.05em;
+      }
+
+      .ex-btn:hover {
+        border-color: var(--gold-dim);
+        color: var(--gold);
+      }
+      .ex-btn.ex-playing {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .ex-btn.loop-on {
+        border-color: var(--loop-on-border);
+        color: var(--loop-on-color);
+        background: var(--seq-active-bg);
+        font-weight: 700;
+      }
+
+      .ex-tempo {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--cream-dim);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-left: auto;
+      }
+
+      .ex-tempo input[type="range"] {
+        width: 70px;
+        accent-color: var(--gold);
+      }
+
+      .exercise-desc {
+        font-size: 0.85rem;
+        color: var(--cream-dim);
+        font-style: italic;
+        margin-top: 0.6rem;
+        line-height: 1.5;
+      }
+
+      /* Staff */
+      .staff-wrap {
+        margin: 0.8rem 0 0.4rem;
+        overflow-x: auto;
+        overflow-y: visible;
+        padding-bottom: 0.3rem;
+      }
+
+      .staff-svg {
+        display: block;
+        overflow: visible;
+      }
+
+      .staff-line {
+        stroke: var(--cream-dim);
+        stroke-width: 1;
+      }
+      .staff-ledger {
+        stroke: var(--cream-dim);
+        stroke-width: 1;
+      }
+      .staff-clef {
+        fill: var(--cream-dim);
+        font-size: 38px;
+      }
+
+      .staff-note-head {
+        fill: var(--cream-dim);
+        stroke: none;
+        transition:
+          stroke 0.1s ease,
+          stroke-width 0.1s ease;
+      }
+      .staff-note-head.active {
+        fill: var(--cream-dim);
+        stroke: var(--staff-active-fill);
+        stroke-width: 2;
+        filter: none;
+      }
+      .staff-note-stem {
+        stroke: var(--cream-dim);
+        stroke-width: 1.5;
+        transition: stroke 0.1s ease;
+      }
+      .staff-note-stem.active {
+        stroke: var(--staff-active-fill);
+        stroke-width: 2.5;
+      }
+      .staff-note-label {
+        fill: var(--cream-dim);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 8px;
+        text-anchor: middle;
+        transition: fill 0.1s ease;
+      }
+      .staff-note-label.active {
+        fill: var(--staff-active-fill);
+        font-weight: 700;
+        font-size: 9px;
+      }
+
+      .staff-note-bg {
+        fill: transparent;
+      }
+      .staff-note-bg.active {
+        fill: transparent;
+      }
+
+      /* Theme toggle */
+      .theme-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 0.35rem 0.8rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.7rem;
+        color: var(--cream-dim);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .theme-toggle:hover {
+        border-color: var(--gold-dim);
+        color: var(--gold);
+      }
+
+      /* --- Notes collapsible wrapper --- */
+      .notes-wrapper {
+        max-width: 700px;
+        margin: 0 auto 2rem;
+      }
+
+      .section-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--gold-dim);
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        cursor: pointer;
+        padding: 0.5rem 0.5rem;
+        border-bottom: 1px solid var(--divider);
+        margin-bottom: 0;
+        user-select: none;
+        transition: color 0.15s ease;
+      }
+      .section-toggle:hover {
+        color: var(--gold);
+      }
+
+      .notes-collapsible {
+        display: none;
+      }
+      .notes-collapsible.open {
+        display: block;
+      }
+
+      /* --- Drill panels --- */
+      .drill-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.65rem;
+        color: var(--cream-dim);
+        cursor: pointer;
+        padding: 0.5rem 0 0;
+        margin-top: 0.8rem;
+        border-top: 1px solid var(--border);
+        user-select: none;
+        transition: color 0.15s ease;
+        letter-spacing: 0.05em;
+      }
+      .drill-toggle:hover {
+        color: var(--gold);
+      }
+
+      .drill-content {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.25s ease;
+      }
+      .drill-content.open {
+        max-height: 1200px;
+      }
+
+      .drill-rows {
+        padding-top: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+
+      .drill-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--cream-dim);
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        transition: background 0.1s ease;
+      }
+      .drill-row:hover {
+        background: var(--surface2);
+      }
+      .drill-row.playing {
+        background: var(--surface2);
+        color: var(--cream);
+      }
+
+      .drill-base {
+        display: none;
+      }
+
+      .drill-chain {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .drill-seq-note {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--cream);
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 0.2rem 0.5rem;
+        transition: all 0.15s ease;
+        display: inline-block;
+        line-height: 1.3;
+      }
+      .drill-seq-note.seq-active {
+        border-color: var(--seq-active-border);
+        color: var(--seq-active-color);
+        background: var(--seq-active-bg);
+        font-weight: 700;
+      }
+
+      .drill-seq-arrow {
+        color: var(--gold-dim);
+        font-size: 0.75rem;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      .drill-play-btn {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
+        color: var(--cream-dim);
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 0.2rem 0.52rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        flex-shrink: 0;
+      }
+      .drill-play-btn:hover {
+        border-color: var(--gold-dim);
+        color: var(--gold);
+      }
+      .drill-play-btn.playing {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .drill-loop-btn.playing {
+        border-color: var(--loop-on-border);
+        color: var(--loop-on-color);
+      }
+
+      @media (max-width: 600px) {
+        .seq-arrow,
+        .drill-seq-arrow {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" id="themeBtn">🌙 темна</button>
+    <header>
+      <h1>Барокова сопрано</h1>
+      <p>Таблиця аплікатур · До¹ — Ля³</p>
+    </header>
+
+    <div id="notes-section"></div>
+
+    <div id="exercises"></div>
+
+    <script>
+      // --- Audio engine ---
+      let audioCtx = null;
+      let currentNodes = null;
+
+      function getCtx() {
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+      }
+
+      function stopCurrent() {
+        if (currentNodes) {
+          try {
+            currentNodes.gainNode.gain.setTargetAtTime(
+              0,
+              audioCtx.currentTime,
+              0.05,
+            );
+            const n = currentNodes;
+            setTimeout(() => {
+              try {
+                n.osc1.stop();
+                n.osc2.stop();
+                n.osc3.stop();
+              } catch (e) {}
+            }, 300);
+          } catch (e) {}
+          currentNodes = null;
+        }
+        document.querySelectorAll(".play-btn.playing").forEach((b) => {
+          b.classList.remove("playing");
+          b.innerHTML = "&#9654;";
         });
-        if (onDone) onDone();
-        return;
       }
-    }
-    // Highlight text note
-    activeSet.forEach(el => el.classList.remove('seq-active'));
-    if (activeSet[i]) activeSet[i].classList.add('seq-active');
 
-    // Highlight staff note
-    if (staffNotes) {
-      staffNotes.forEach(g => {
-        g.querySelectorAll('.staff-note-head,.staff-note-stem,.staff-note-label,.staff-note-bg').forEach(el => el.classList.remove('active'));
-      });
-      if (staffNotes[i]) {
-        staffNotes[i].querySelectorAll('.staff-note-head,.staff-note-stem,.staff-note-label').forEach(el => el.classList.add('active'));
-      }
-    }
-
-    const noteData = getNoteByName(seqNotes[i].name, seqNotes[i].oct);
-    if (noteData) playNote(noteData.freq, { classList:{add:()=>{},remove:()=>{},contains:()=>false}, innerHTML:'' });
-    i++;
-    setTimeout(step, interval);
-  }
-
-  seqStopper = () => { stopped = true; };
-  step();
-}
-
-// --- Staff (нотний стан) ---
-// Staff positions for soprano recorder (sounds C5–A7).
-// We notate at written pitch: C4=middle C. Treble clef.
-// staffStep: distance between lines = 8px. Line 1 (bottom) = E4.
-// Position 0 = E4 (bottom line), each step = half-step up in staff space.
-// Steps (0=E4, 1=F4, 2=G4, 3=A4, 4=B4, 5=C5, 6=D5, 7=E5, 8=F5, 9=G5, 10=A5, 11=B5, 12=C6...)
-// For soprano recorder oct1 = written C5-B5, oct2 = C6-B6, oct3 = C7-A7 (sound oct higher but notate as written)
-
-const NOTE_STEP = { 'До':0, 'Ре':1, 'Мі':2, 'Фа':3, 'Соль':4, 'Ля':5, 'Сі':6 };
-// staff y position: bottom line of staff = y0. Steps go up.
-// Each staff space = STEP px. Lines at steps 0,2,4,6,8 (E4,G4,B4,D5,F5).
-// note step from bottom: E4=0, F4=1, G4=2, A4=3, B4=4, C5=5, D5=6, E5=7, F5=8, G5=9, A5=10, B5=11
-// C6=12, D6=13, E6=14, F6=15, G6=16, A6=17, B6=18, C7=19, D7=20, E7=21, F7=22, G7=23, A7=24
-
-function noteStaffStep(name, oct) {
-  // oct1 = C5..B5 → steps 5..11, oct2 = C6..B6 → 12..18, oct3 = C7..A7 → 19..24
-  const base = (oct === 1) ? 5 : (oct === 2) ? 12 : 19;
-  return base + NOTE_STEP[name];
-}
-
-function buildStaff(seqNotes) {
-  const STEP = 5;       // pixels per staff step (half-space)
-  const LINE_STEPS = [0, 4, 8, 12, 16]; // E4,G4,B4,D5,F5 — treble clef lines from bottom
-  const MARGIN_L = 42;  // space for clef
-  const NOTE_W = 36;    // horizontal spacing per note
-  const HEAD_RX = 6.5, HEAD_RY = 4.55;
-  const STEM_LEN = 28;
-
-  const staffH = 16 * STEP + 40; // total height with ledger headroom
-  const staffY0 = staffH - 20;   // y of bottom line (step 0 = E4)
-  const totalW = MARGIN_L + seqNotes.length * NOTE_W + 20;
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', totalW);
-  svg.setAttribute('height', staffH);
-  svg.setAttribute('class', 'staff-svg');
-
-  // Draw 5 staff lines (treble: E4 G4 B4 D5 F5 = steps 0,4,8,12,16)
-  LINE_STEPS.forEach(s => {
-    const y = staffY0 - s * STEP;
-    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1', MARGIN_L - 4);
-    line.setAttribute('x2', totalW - 4);
-    line.setAttribute('y1', y); line.setAttribute('y2', y);
-    line.setAttribute('class','staff-line');
-    svg.appendChild(line);
-  });
-
-  // Treble clef symbol
-  const clef = document.createElementNS('http://www.w3.org/2000/svg','text');
-  clef.setAttribute('x', 4);
-  clef.setAttribute('y', staffY0 - 4 * STEP + 10);
-  clef.setAttribute('class','staff-clef');
-  clef.textContent = '𝄞';
-  svg.appendChild(clef);
-
-  // Notes
-  const noteGroups = [];
-
-  seqNotes.forEach((sn, i) => {
-    const step = noteStaffStep(sn.name, sn.oct);
-    const x = MARGIN_L + i * NOTE_W + NOTE_W / 2;
-    const y = staffY0 - step * STEP;
-
-    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-    g.setAttribute('data-idx', i);
-
-    // Ledger lines if needed
-    // Below staff: step < 0 (need ledger at each even step below 0)
-    // Above staff: step > 16
-    if (step < 0) {
-      for (let ls = -2; ls >= step - (step % 2 === 0 ? 0 : -1); ls -= 2) {
-        if (ls > step - 2) {
-          const ll = document.createElementNS('http://www.w3.org/2000/svg','line');
-          ll.setAttribute('x1', x - 9); ll.setAttribute('x2', x + 9);
-          const ly = staffY0 - ls * STEP;
-          ll.setAttribute('y1', ly); ll.setAttribute('y2', ly);
-          ll.setAttribute('class','staff-ledger');
-          g.appendChild(ll);
+      // --- localStorage helpers ---
+      function lsGet(key, defaultVal) {
+        try {
+          const v = localStorage.getItem(key);
+          return v === null ? defaultVal : v === "true";
+        } catch (e) {
+          return defaultVal;
         }
       }
-    }
-    // Middle C (step=2 below E4 = step -2 actually, C4 = step -2 from E4 = -2... 
-    // For our notes oct1 starts at C5=step5, so no ledger lines needed below.
-    // Above: step > 16 (F5 is top line)
-    if (step > 16) {
-      for (let ls = 18; ls <= step + (step % 2 === 0 ? 0 : 1); ls += 2) {
-        const ll = document.createElementNS('http://www.w3.org/2000/svg','line');
-        ll.setAttribute('x1', x - 9); ll.setAttribute('x2', x + 9);
-        const ly = staffY0 - ls * STEP;
-        ll.setAttribute('y1', ly); ll.setAttribute('y2', ly);
-        ll.setAttribute('class','staff-ledger');
-        g.appendChild(ll);
+      function lsSet(key, val) {
+        try {
+          localStorage.setItem(key, val ? "true" : "false");
+        } catch (e) {}
       }
-    }
 
-    // Stem (up if below middle, down if above)
-    const stemUp = step < 8;
-    const stem = document.createElementNS('http://www.w3.org/2000/svg','line');
-    stem.setAttribute('class','staff-note-stem');
-    if (stemUp) {
-      stem.setAttribute('x1', x + HEAD_RX - 1); stem.setAttribute('x2', x + HEAD_RX - 1);
-      stem.setAttribute('y1', y); stem.setAttribute('y2', y - STEM_LEN);
-    } else {
-      stem.setAttribute('x1', x - HEAD_RX + 1); stem.setAttribute('x2', x - HEAD_RX + 1);
-      stem.setAttribute('y1', y); stem.setAttribute('y2', y + STEM_LEN);
-    }
-    g.appendChild(stem);
+      // Recorder-like timbre: fundamental + harmonics shaped to flute
+      function playNote(freq, btn) {
+        stopCurrent();
+        const ctx = getCtx();
+        const t = ctx.currentTime;
 
-    // Highlight background rect (shown when active)
-    const bgRect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-    bgRect.setAttribute('x', x - HEAD_RX - 3); bgRect.setAttribute('y', y - HEAD_RY - 14);
-    bgRect.setAttribute('width', (HEAD_RX + 3) * 2); bgRect.setAttribute('height', HEAD_RY * 2 + 28);
-    bgRect.setAttribute('rx', 4); bgRect.setAttribute('ry', 4);
-    bgRect.setAttribute('class','staff-note-bg');
-    g.appendChild(bgRect);
+        // Master gain
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, t);
+        gainNode.gain.linearRampToValueAtTime(0.22, t + 0.06); // fast attack
+        gainNode.gain.setTargetAtTime(0.18, t + 0.06, 0.3); // settle
 
-    // Note head
-    const ellipse = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
-    ellipse.setAttribute('cx', x); ellipse.setAttribute('cy', y);
-    ellipse.setAttribute('rx', HEAD_RX); ellipse.setAttribute('ry', HEAD_RY);
-    ellipse.setAttribute('class','staff-note-head');
-    ellipse.setAttribute('transform', `rotate(-15,${x},${y})`);
-    g.appendChild(ellipse);
+        // Slight vibrato via LFO
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = 5.5;
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 0;
+        lfoGain.gain.setTargetAtTime(freq * 0.004, t + 0.15, 0.2); // vibrato fades in
+        lfo.connect(lfoGain);
 
-    // Label below
-    const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
-    lbl.setAttribute('x', x); lbl.setAttribute('y', staffY0 + 14);
-    lbl.setAttribute('class','staff-note-label');
-    lbl.textContent = sn.name[0] + sn.oct;
-    g.appendChild(lbl);
+        // Fundamental
+        const osc1 = ctx.createOscillator();
+        osc1.type = "sine";
+        osc1.frequency.value = freq;
+        lfoGain.connect(osc1.frequency);
+        const g1 = ctx.createGain();
+        g1.gain.value = 1.0;
+        osc1.connect(g1);
 
-    svg.appendChild(g);
-    noteGroups.push(g);
-  });
+        // 2nd harmonic (softer — recorder has weak evens)
+        const osc2 = ctx.createOscillator();
+        osc2.type = "sine";
+        osc2.frequency.value = freq * 2;
+        lfoGain.connect(osc2.frequency);
+        const g2 = ctx.createGain();
+        g2.gain.value = 0.18;
+        osc2.connect(g2);
 
-  return { svg, noteGroups };
-}
+        // 3rd harmonic (stronger odd)
+        const osc3 = ctx.createOscillator();
+        osc3.type = "sine";
+        osc3.frequency.value = freq * 3;
+        lfoGain.connect(osc3.frequency);
+        const g3 = ctx.createGain();
+        g3.gain.value = 0.1;
+        osc3.connect(g3);
 
-function buildExerciseCard(ex, section) {
-  const card = document.createElement('div');
-  card.className = 'exercise-card';
+        // Breath noise via filtered white noise
+        const bufSize = ctx.sampleRate * 2;
+        const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = ctx.createBufferSource();
+        noise.buffer = buf;
+        noise.loop = true;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = "bandpass";
+        noiseFilter.frequency.value = freq * 1.5;
+        noiseFilter.Q.value = 0.8;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.value = 0.018;
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
 
-  // Header
-  const header = document.createElement('div');
-  header.className = 'exercise-header';
-  const nameEl = document.createElement('div');
-  nameEl.className = 'exercise-name';
-  nameEl.textContent = ex.name;
-  const metaEl = document.createElement('div');
-  metaEl.className = 'exercise-meta';
-  metaEl.textContent = ex.meta;
-  header.appendChild(nameEl);
-  header.appendChild(metaEl);
-  card.appendChild(header);
+        // Mix everything
+        [g1, g2, g3, noiseGain].forEach((g) => g.connect(gainNode));
+        gainNode.connect(ctx.destination);
 
-  // Sequence display
-  const seqEl = document.createElement('div');
-  seqEl.className = 'exercise-seq';
-  const noteEls = [];
-  ex.seq.forEach((sn, i) => {
-    const noteSpan = document.createElement('span');
-    noteSpan.className = 'seq-note';
-    noteSpan.textContent = `${sn.name}${sn.oct}`;
-    noteSpan.addEventListener('click', () => {
-      const nd = getNoteByName(sn.name, sn.oct);
-      if (nd) playNote(nd.freq, { classList:{add:()=>{},remove:()=>{},contains:()=>false}, innerHTML:'' });
-    });
-    noteEls.push(noteSpan);
-    seqEl.appendChild(noteSpan);
-    if (i < ex.seq.length - 1) {
-      const arr = document.createElement('span');
-      arr.className = 'seq-arrow';
-      arr.textContent = '→';
-      seqEl.appendChild(arr);
-    }
-  });
-  card.appendChild(seqEl);
+        // Start
+        lfo.start(t);
+        osc1.start(t);
+        osc2.start(t);
+        osc3.start(t);
+        noise.start(t);
 
-  // Staff
-  const origStaff = buildStaff(ex.seq);
-  let staffNotes = origStaff.noteGroups;
-  const staffWrap = document.createElement('div');
-  staffWrap.className = 'staff-wrap';
-  staffWrap.appendChild(origStaff.svg);
-  card.appendChild(staffWrap);
+        currentNodes = { gainNode, osc1, osc2, osc3, lfo, noise };
 
-  // Controls
-  const controls = document.createElement('div');
-  controls.className = 'exercise-controls';
-  const playBtn = document.createElement('button');
-  playBtn.className = 'ex-btn';
-  playBtn.textContent = '▶ Грати';
-  const loopBtn = document.createElement('button');
-  loopBtn.className = 'ex-btn';
-  loopBtn.textContent = '⟳';
-  loopBtn.title = 'Циклічно';
-  loopBtn.style.padding = '0.3rem 0.5rem';
-  let loopOn = false;
-  loopBtn.addEventListener('click', () => {
-    loopOn = !loopOn;
-    loopBtn.classList.toggle('loop-on', loopOn);
-  });
-  const tempoLabel = document.createElement('div');
-  tempoLabel.className = 'ex-tempo';
-  const tempoVal = document.createElement('span');
-  tempoVal.textContent = '72 bpm';
-  const tempoSlider = document.createElement('input');
-  tempoSlider.type = 'range';
-  tempoSlider.min = 40; tempoSlider.max = 160; tempoSlider.value = 72;
-  tempoSlider.addEventListener('input', () => { tempoVal.textContent = `${tempoSlider.value} bpm`; });
-  tempoLabel.appendChild(tempoSlider);
-  tempoLabel.appendChild(tempoVal);
+        btn.classList.add("playing");
+        btn.innerHTML = "&#9646;&#9646;";
 
-  playBtn.addEventListener('click', () => {
-    if (playBtn.classList.contains('ex-playing')) {
-      if (seqStopper) { seqStopper(); seqStopper = null; }
-      stopCurrent();
-      playBtn.classList.remove('ex-playing');
-      playBtn.textContent = '▶ Грати';
-      noteEls.forEach(el => el.classList.remove('seq-active'));
-      restoreMainStaff();
-      return;
-    }
-    stopAllDrills();
-    if (seqStopper) { seqStopper(); seqStopper = null; }
-    document.querySelectorAll('.ex-btn.ex-playing').forEach(b => {
-      b.classList.remove('ex-playing');
-      b.textContent = '▶ Грати';
-    });
-    playBtn.classList.add('ex-playing');
-    playBtn.textContent = '■ Стоп';
-    restoreMainStaff();
-    playSequence(ex.seq, parseInt(tempoSlider.value), playBtn, noteEls, loopOn, staffNotes);
-  });
-
-  controls.appendChild(playBtn);
-  controls.appendChild(loopBtn);
-  controls.appendChild(tempoLabel);
-  card.appendChild(controls);
-
-  // Description
-  const desc = document.createElement('div');
-  desc.className = 'exercise-desc';
-  desc.textContent = ex.desc;
-  card.appendChild(desc);
-
-  // Helper: restore main exercise staff
-  function restoreMainStaff() {
-    staffWrap.innerHTML = '';
-    const rebuilt = buildStaff(ex.seq);
-    staffNotes = rebuilt.noteGroups;
-    staffWrap.appendChild(rebuilt.svg);
-  }
-
-  return { card, staffWrap, tempoSlider, restoreMainStaff };
-}
-
-function appendDrillPanel(card, staffWrap, tempoSlider, restoreMainStaff, drillKey, drillLabel, chainFn) {
-  const drillOpen = lsGet(drillKey, false);
-
-  const toggle = document.createElement('div');
-  toggle.className = 'drill-toggle';
-  toggle.innerHTML = `<span>${drillOpen ? '▾' : '▸'}</span> ${drillLabel}`;
-
-  const content = document.createElement('div');
-  content.className = 'drill-content' + (drillOpen ? ' open' : '');
-
-  const rows = document.createElement('div');
-  rows.className = 'drill-rows';
-
-  let activeDrillBtn = null;
-  let activeDrillRow = null;
-
-  DRILL_BASE_NOTES.forEach(base => {
-    const chain = chainFn(base.name, base.oct);
-
-    const row = document.createElement('div');
-    row.className = 'drill-row';
-
-    const baseLabel = document.createElement('span');
-    baseLabel.className = 'drill-base';
-    baseLabel.innerHTML = `${base.name}<sup>${base.oct}</sup>`;
-    row.appendChild(baseLabel);
-
-    const chainContainer = document.createElement('span');
-    chainContainer.className = 'drill-chain';
-    const noteSpans = [];
-    chain.forEach((n, i) => {
-      const span = document.createElement('span');
-      span.className = 'drill-seq-note';
-      span.innerHTML = `${n.name}<sup>${n.oct}</sup>`;
-      noteSpans.push(span);
-      chainContainer.appendChild(span);
-      if (i < chain.length - 1) {
-        const arrow = document.createElement('span');
-        arrow.className = 'drill-seq-arrow';
-        arrow.textContent = '→';
-        chainContainer.appendChild(arrow);
+        // Auto-stop after 1.8s
+        const stopAt = t + 1.8;
+        gainNode.gain.setTargetAtTime(0, stopAt - 0.15, 0.08);
+        setTimeout(() => {
+          try {
+            osc1.stop();
+            osc2.stop();
+            osc3.stop();
+            lfo.stop();
+            noise.stop();
+          } catch (e) {}
+          if (currentNodes && currentNodes.osc1 === osc1) {
+            currentNodes = null;
+            btn.classList.remove("playing");
+            btn.innerHTML = "&#9654;";
+          }
+        }, 1900);
       }
-    });
-    row.appendChild(chainContainer);
 
-    const btn = document.createElement('button');
-    btn.className = 'drill-play-btn';
-    btn.textContent = '▶';
-    btn.title = 'Грати';
-    row.appendChild(btn);
+      // --- Note data ---
+      // freq: Hz (A4=440, equal temperament, recorder soprano sounds one octave higher than written)
+      // We treat oct 1 as C5 (523.25 Hz) since soprano recorder is a C instrument sounding high
+      const C5 = 523.25;
+      function et(semitones) {
+        return C5 * Math.pow(2, semitones / 12);
+      }
 
-    const loopBtn = document.createElement('button');
-    loopBtn.className = 'drill-play-btn drill-loop-btn';
-    loopBtn.textContent = '⟳';
-    loopBtn.title = 'Грати циклічно';
-    row.appendChild(loopBtn);
+      const NOTES = [
+        // Octave 1 (sounds C5–B5)
+        {
+          name: "До",
+          oct: 1,
+          freq: et(0),
+          f: ["•", "•", "•", "•", "•", "•", "•", "•"],
+          ratio: "1:1",
+        },
+        {
+          name: "Ре",
+          oct: 1,
+          freq: et(2),
+          f: ["•", "•", "•", "•", "•", "•", "•", "о"],
+          ratio: "9:8",
+        },
+        {
+          name: "Мі",
+          oct: 1,
+          freq: et(4),
+          f: ["•", "•", "•", "•", "•", "•", "о", "о"],
+          ratio: "5:4",
+        },
+        {
+          name: "Фа",
+          oct: 1,
+          freq: et(5),
+          f: ["•", "•", "•", "•", "о", "•", "о", "о"],
+          ratio: "4:3",
+        },
+        {
+          name: "Соль",
+          oct: 1,
+          freq: et(7),
+          f: ["•", "•", "•", "•", "о", "о", "о", "о"],
+          ratio: "3:2",
+        },
+        {
+          name: "Ля",
+          oct: 1,
+          freq: et(9),
+          f: ["•", "•", "•", "о", "о", "о", "о", "о"],
+          ratio: "5:3",
+        },
+        {
+          name: "Сі",
+          oct: 1,
+          freq: et(11),
+          f: ["•", "•", "о", "о", "о", "о", "о", "о"],
+          ratio: "15:8",
+        },
+        // Octave 2 (sounds C6–B6)
+        {
+          name: "До",
+          oct: 2,
+          freq: et(12),
+          f: ["•", "о", "•", "о", "о", "о", "о", "о"],
+          ratio: "2:1",
+        },
+        {
+          name: "Ре",
+          oct: 2,
+          freq: et(14),
+          f: ["о", "о", "•", "о", "о", "о", "о", "о"],
+          ratio: "9:4",
+        },
+        {
+          name: "Мі",
+          oct: 2,
+          freq: et(16),
+          f: ["/", "•", "•", "•", "•", "•", "о", "о"],
+          ratio: "5:2",
+        },
+        {
+          name: "Фа",
+          oct: 2,
+          freq: et(17),
+          f: ["/", "•", "•", "•", "о", "•", "о", "о"],
+          ratio: "8:3",
+        },
+        {
+          name: "Соль",
+          oct: 2,
+          freq: et(19),
+          f: ["/", "•", "•", "•", "о", "о", "о", "о"],
+          ratio: "3:1",
+        },
+        {
+          name: "Ля",
+          oct: 2,
+          freq: et(21),
+          f: ["/", "•", "•", "о", "о", "о", "о", "о"],
+          ratio: "10:3",
+        },
+        {
+          name: "Сі",
+          oct: 2,
+          freq: et(23),
+          f: ["/", "•", "•", "о", "•", "•", "о", "о"],
+          ratio: "15:4",
+        },
+        // Octave 3 (sounds C7–A7)
+        {
+          name: "До",
+          oct: 3,
+          freq: et(24),
+          f: ["/", "•", "о", "о", "•", "•", "о", "о"],
+          ratio: "4:1",
+        },
+        {
+          name: "Ре",
+          oct: 3,
+          freq: et(26),
+          f: ["/", "•", "о", "•", "•", "о", "•", "•"],
+          ratio: "9:2",
+        },
+        {
+          name: "Мі",
+          oct: 3,
+          freq: et(28),
+          f: ["/", "о", "•", "•", "о", "•", "•", "о"],
+          ratio: "5:1",
+        },
+        {
+          name: "Фа",
+          oct: 3,
+          freq: et(29),
+          f: ["/", "•", "•", "о", "•", "•", "о", "о", "•"],
+          ratio: "16:3",
+          bell: true,
+        },
+        {
+          name: "Соль",
+          oct: 3,
+          freq: et(31),
+          f: ["/", "•", "о", "•", "•", "о", "•", "о", "•"],
+          ratio: "6:1",
+          bell: true,
+        },
+        {
+          name: "Ля",
+          oct: 3,
+          freq: et(33),
+          f: ["/", "•", "о", "о", "о", "•", "•", "о"],
+          ratio: "20:3",
+        },
+      ];
 
-    function stopDrillRow() {
-      if (seqStopper) { seqStopper(); seqStopper = null; }
-      stopCurrent();
-      btn.classList.remove('playing');
-      btn.textContent = '▶';
-      loopBtn.classList.remove('playing');
-      loopBtn.textContent = '⟳';
-      row.classList.remove('playing');
-      noteSpans.forEach(s => s.classList.remove('seq-active'));
-      restoreMainStaff();
-      activeDrillBtn = null; activeDrillRow = null;
-    }
+      const HOLE_LABELS = ["Вел", "1", "2", "3", "4", "5", "6", "7"];
 
-    function startDrillPlayback(isLoop, triggerBtn, idleText) {
-      if (triggerBtn.classList.contains('playing')) { stopDrillRow(); return; }
+      function buildNoteCol(note) {
+        const col = document.createElement("div");
+        col.className = "note-col";
 
-      stopAllDrills();
-      if (seqStopper) { seqStopper(); seqStopper = null; }
-      stopCurrent();
-      document.querySelectorAll('.ex-btn.ex-playing').forEach(b => {
-        b.classList.remove('ex-playing'); b.textContent = '▶ Грати';
-      });
+        const card = document.createElement("div");
+        card.className = "note-card";
 
-      activeDrillBtn = triggerBtn;
-      activeDrillRow = row;
-      triggerBtn.classList.add('playing');
-      triggerBtn.textContent = '■';
-      row.classList.add('playing');
+        // Name
+        const nameEl = document.createElement("div");
+        nameEl.className = "note-name";
+        nameEl.innerHTML = `${note.name}<sup>${note.oct}</sup>`;
+        card.appendChild(nameEl);
 
-      const drillStaff = buildStaff(chain);
-      staffWrap.innerHTML = '';
-      staffWrap.appendChild(drillStaff.svg);
+        // Play button
+        const playBtn = document.createElement("button");
+        playBtn.className = "play-btn";
+        playBtn.innerHTML = "&#9654;";
+        playBtn.title = `Грати ${note.name}${note.oct}`;
+        playBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (playBtn.classList.contains("playing")) {
+            stopCurrent();
+          } else {
+            playNote(note.freq, playBtn);
+          }
+        });
+        card.appendChild(playBtn);
 
-      playSequence(
-        chain, parseInt(tempoSlider.value),
-        { classList: { contains: () => false, add: () => {}, remove: () => {} }, textContent: '' },
-        noteSpans, isLoop, drillStaff.noteGroups,
-        () => {
-          triggerBtn.classList.remove('playing');
-          triggerBtn.textContent = idleText;
-          row.classList.remove('playing');
+        // Fingering diagram
+        const diagram = document.createElement("div");
+        diagram.className = "flute-diagram";
+
+        note.f.forEach((state, i) => {
+          if (i === 8) return;
+          const row = document.createElement("div");
+          row.className = "hole-row";
+          const lbl = document.createElement("div");
+          lbl.className = "hole-label";
+          lbl.textContent = HOLE_LABELS[i];
+          const hole = document.createElement("div");
+          hole.className = "hole";
+          if (state === "•") hole.classList.add("closed");
+          else if (state === "/") hole.classList.add("half");
+          row.appendChild(lbl);
+          row.appendChild(hole);
+          diagram.appendChild(row);
+        });
+
+        if (note.bell && note.f[8]) {
+          const row = document.createElement("div");
+          row.className = "hole-row bell-row";
+          const lbl = document.createElement("div");
+          lbl.className = "hole-label";
+          lbl.textContent = "B";
+          const hole = document.createElement("div");
+          hole.className = "hole";
+          if (note.f[8] === "•") hole.classList.add("closed");
+          row.appendChild(lbl);
+          row.appendChild(hole);
+          diagram.appendChild(row);
+        }
+
+        card.appendChild(diagram);
+
+        // Inline detail
+        const detail = document.createElement("div");
+        detail.className = "inline-detail";
+
+        const ratioEl = document.createElement("div");
+        ratioEl.className = "detail-ratio";
+        ratioEl.textContent = note.ratio;
+        detail.appendChild(ratioEl);
+
+        const freqEl = document.createElement("div");
+        freqEl.className = "detail-freq";
+        freqEl.textContent = `${Math.round(note.freq)} Hz`;
+        detail.appendChild(freqEl);
+
+        const fingersEl = document.createElement("div");
+        fingersEl.className = "detail-fingers";
+        fingersEl.innerHTML = note.f
+          .map((s, i) => {
+            if (i === 8 && !note.bell) return "";
+            const lbl = i === 8 ? "B" : HOLE_LABELS[i];
+            const cls =
+              s === "•" ? "f-closed" : s === "/" ? "f-half" : "f-open";
+            const sym = s === "•" ? "●" : s === "/" ? "◑" : "○";
+            return `<span class="${cls}">${lbl}${sym}</span> `;
+          })
+          .join("");
+        detail.appendChild(fingersEl);
+
+        // Toggle detail on card click
+        card.addEventListener("click", () => {
+          const isOpen = detail.classList.contains("visible");
+          document
+            .querySelectorAll(".inline-detail.visible")
+            .forEach((d) => d.classList.remove("visible"));
+          document
+            .querySelectorAll(".note-card.active")
+            .forEach((c) => c.classList.remove("active"));
+          if (!isOpen) {
+            detail.classList.add("visible");
+            card.classList.add("active");
+          }
+        });
+
+        col.appendChild(card);
+        col.appendChild(detail);
+        return col;
+      }
+
+      // --- Exercises ---
+      const EXERCISES = [
+        {
+          name: "Терції",
+          meta: "крок +2",
+          desc: "Обходить усі 7 ступенів через одну. Відчуй польот між нотами.",
+          seq: [
+            { name: "До", oct: 1 },
+            { name: "Мі", oct: 1 },
+            { name: "Соль", oct: 1 },
+            { name: "Сі", oct: 1 },
+            { name: "Ре", oct: 2 },
+            { name: "Фа", oct: 2 },
+            { name: "Ля", oct: 2 },
+            { name: "До", oct: 2 },
+          ],
+        },
+        {
+          name: "Кварти",
+          meta: "крок +3 · спіраль квінт назад",
+          desc: "Великі стрибки. Зверни увагу на зміну регістру між Сі¹ і Мі².",
+          seq: [
+            { name: "До", oct: 1 },
+            { name: "Фа", oct: 1 },
+            { name: "Сі", oct: 1 },
+            { name: "Мі", oct: 2 },
+            { name: "Ля", oct: 2 },
+            { name: "Ре", oct: 2 },
+            { name: "Соль", oct: 2 },
+            { name: "До", oct: 2 },
+          ],
+        },
+        {
+          name: "Квінти",
+          meta: "крок +4 · спіраль квінт",
+          desc: "Основа тональності. До→Соль→Ре→Ля — кожен крок відчувається як рух вперед.",
+          seq: [
+            { name: "До", oct: 1 },
+            { name: "Соль", oct: 1 },
+            { name: "Ре", oct: 2 },
+            { name: "Ля", oct: 2 },
+            { name: "Мі", oct: 2 },
+            { name: "Сі", oct: 2 },
+            { name: "До", oct: 3 },
+          ],
+        },
+        {
+          name: "Сексти",
+          meta: "крок +5",
+          desc: "М'який широкий стрибок. Менш напружений ніж квінта, але більший простір. До→Ля — класична мелодична фраза.",
+          seq: [
+            { name: "До", oct: 1 },
+            { name: "Ля", oct: 1 },
+            { name: "Ре", oct: 1 },
+            { name: "Сі", oct: 1 },
+            { name: "Мі", oct: 1 },
+            { name: "До", oct: 2 },
+            { name: "Фа", oct: 1 },
+            { name: "Ре", oct: 2 },
+            { name: "Соль", oct: 1 },
+            { name: "Мі", oct: 2 },
+          ],
+        },
+        {
+          name: "Септими",
+          meta: "крок +6",
+          desc: "Максимальна напруга в діатоніці. Великий стрибок — майже октава, але не дістає. Хочеться розв'язання.",
+          seq: [
+            { name: "До", oct: 1 },
+            { name: "Сі", oct: 1 },
+            { name: "Ре", oct: 1 },
+            { name: "До", oct: 2 },
+            { name: "Мі", oct: 1 },
+            { name: "Ре", oct: 2 },
+            { name: "Фа", oct: 1 },
+            { name: "Мі", oct: 2 },
+            { name: "Соль", oct: 1 },
+            { name: "Фа", oct: 2 },
+          ],
+        },
+      ];
+
+      // --- Chain generation helpers ---
+      const NOTE_NAMES = ["До", "Ре", "Мі", "Фа", "Соль", "Ля", "Сі"];
+      const nameToIdx = { До: 0, Ре: 1, Мі: 2, Фа: 3, Соль: 4, Ля: 5, Сі: 6 };
+
+      function noteInRange(name, oct) {
+        if (oct === 1 || oct === 2) return true;
+        if (oct === 3 && name === "До") return true;
+        return false;
+      }
+
+      function stepNote(name, oct, delta) {
+        const raw = nameToIdx[name] + delta;
+        const newOct = oct + Math.floor(raw / 7);
+        const newName = NOTE_NAMES[((raw % 7) + 7) % 7];
+        return { name: newName, oct: newOct };
+      }
+
+      function buildChain(baseName, baseOct, intervalSteps, length) {
+        length = length === undefined ? 3 : length;
+        const chain = [{ name: baseName, oct: baseOct }];
+        for (let i = 0; i < length; i++) {
+          const cur = chain[chain.length - 1];
+          const up = stepNote(cur.name, cur.oct, intervalSteps);
+          if (noteInRange(up.name, up.oct)) {
+            chain.push(up);
+          } else {
+            chain.push(stepNote(cur.name, cur.oct, -intervalSteps));
+          }
+        }
+        return chain;
+      }
+
+      function build145Chain(baseName, baseOct) {
+        return [0, 3, 4, 7].map((offset) => {
+          if (offset === 0) return { name: baseName, oct: baseOct };
+          const up = stepNote(baseName, baseOct, offset);
+          if (noteInRange(up.name, up.oct)) return up;
+          return stepNote(baseName, baseOct, -offset);
+        });
+      }
+
+      const DRILL_INTERVALS = {
+        Терції: 2,
+        Кварти: 3,
+        Квінти: 4,
+        Сексти: 5,
+        Септими: 6,
+      };
+      const DRILL_NAMES = {
+        Терції: "Розтерцовка",
+        Кварти: "Розквартовка",
+        Квінти: "Розквінтовка",
+        Сексти: "Розсекстовка",
+        Септими: "Розсептимовка",
+      };
+      const DRILL_BASE_NOTES = [
+        { name: "До", oct: 1 },
+        { name: "Ре", oct: 1 },
+        { name: "Мі", oct: 1 },
+        { name: "Фа", oct: 1 },
+        { name: "Соль", oct: 1 },
+        { name: "Ля", oct: 1 },
+        { name: "Сі", oct: 1 },
+        { name: "До", oct: 2 },
+      ];
+
+      const EXERCISE_145 = {
+        name: "1 — 4 — 5",
+        meta: "тональності",
+        desc: "До→Фа→Соль→До. Стабільність→відхід→очікування→повернення.",
+        seq: [
+          { name: "До", oct: 1 },
+          { name: "Фа", oct: 1 },
+          { name: "Соль", oct: 1 },
+          { name: "До", oct: 2 },
+        ],
+      };
+
+      let exTimers = {};
+
+      function getNoteByName(name, oct) {
+        return NOTES.find((n) => n.name === name && n.oct === oct);
+      }
+
+      let seqStopper = null;
+
+      function playSequence(
+        seqNotes,
+        bpm,
+        playBtn,
+        activeSet,
+        loop,
+        staffNotes,
+        onDone,
+      ) {
+        const interval = (60 / bpm) * 1000;
+        let i = 0;
+        let stopped = false;
+
+        activeSet.forEach((el) => el.classList.remove("seq-active"));
+        if (staffNotes)
+          staffNotes.forEach((g) => {
+            g.querySelectorAll(
+              ".staff-note-head,.staff-note-stem,.staff-note-label,.staff-note-bg",
+            ).forEach((el) => el.classList.remove("active"));
+          });
+
+        function step() {
+          if (stopped) return;
+          if (i >= seqNotes.length) {
+            if (loop) {
+              i = 0;
+            } else {
+              stopCurrent();
+              playBtn.classList.remove("ex-playing");
+              playBtn.textContent = "▶ Грати";
+              activeSet.forEach((el) => el.classList.remove("seq-active"));
+              if (staffNotes)
+                staffNotes.forEach((g) => {
+                  g.querySelectorAll(
+                    ".staff-note-head,.staff-note-stem,.staff-note-label,.staff-note-bg",
+                  ).forEach((el) => el.classList.remove("active"));
+                });
+              if (onDone) onDone();
+              return;
+            }
+          }
+          // Highlight text note
+          activeSet.forEach((el) => el.classList.remove("seq-active"));
+          if (activeSet[i]) activeSet[i].classList.add("seq-active");
+
+          // Highlight staff note
+          if (staffNotes) {
+            staffNotes.forEach((g) => {
+              g.querySelectorAll(
+                ".staff-note-head,.staff-note-stem,.staff-note-label,.staff-note-bg",
+              ).forEach((el) => el.classList.remove("active"));
+            });
+            if (staffNotes[i]) {
+              staffNotes[i]
+                .querySelectorAll(
+                  ".staff-note-head,.staff-note-stem,.staff-note-label",
+                )
+                .forEach((el) => el.classList.add("active"));
+            }
+          }
+
+          const noteData = getNoteByName(seqNotes[i].name, seqNotes[i].oct);
+          if (noteData)
+            playNote(noteData.freq, {
+              classList: {
+                add: () => {},
+                remove: () => {},
+                contains: () => false,
+              },
+              innerHTML: "",
+            });
+          i++;
+          setTimeout(step, interval);
+        }
+
+        seqStopper = () => {
+          stopped = true;
+        };
+        step();
+      }
+
+      // --- Staff (нотний стан) ---
+      // Staff positions for soprano recorder (sounds C5–A7).
+      // We notate at written pitch: C4=middle C. Treble clef.
+      // staffStep: distance between lines = 8px. Line 1 (bottom) = E4.
+      // Position 0 = E4 (bottom line), each step = half-step up in staff space.
+      // Steps (0=E4, 1=F4, 2=G4, 3=A4, 4=B4, 5=C5, 6=D5, 7=E5, 8=F5, 9=G5, 10=A5, 11=B5, 12=C6...)
+      // For soprano recorder oct1 = written C5-B5, oct2 = C6-B6, oct3 = C7-A7 (sound oct higher but notate as written)
+
+      const NOTE_STEP = { До: 0, Ре: 1, Мі: 2, Фа: 3, Соль: 4, Ля: 5, Сі: 6 };
+      // staff y position: bottom line of staff = y0. Steps go up.
+      // Each staff space = STEP px. Lines at steps 0,2,4,6,8 (E4,G4,B4,D5,F5).
+      // note step from bottom: E4=0, F4=1, G4=2, A4=3, B4=4, C5=5, D5=6, E5=7, F5=8, G5=9, A5=10, B5=11
+      // C6=12, D6=13, E6=14, F6=15, G6=16, A6=17, B6=18, C7=19, D7=20, E7=21, F7=22, G7=23, A7=24
+
+      function noteStaffStep(name, oct) {
+        // oct1 = C5..B5 → steps 5..11, oct2 = C6..B6 → 12..18, oct3 = C7..A7 → 19..24
+        const base = oct === 1 ? 5 : oct === 2 ? 12 : 19;
+        return base + NOTE_STEP[name];
+      }
+
+      function buildStaff(seqNotes) {
+        const STEP = 5; // pixels per staff step (half-space)
+        const LINE_STEPS = [0, 4, 8, 12, 16]; // E4,G4,B4,D5,F5 — treble clef lines from bottom
+        const MARGIN_L = 42; // space for clef
+        const NOTE_W = 36; // horizontal spacing per note
+        const HEAD_RX = 6.5,
+          HEAD_RY = 4.55;
+        const STEM_LEN = 28;
+
+        const staffH = 16 * STEP + 40; // total height with ledger headroom
+        const staffY0 = staffH - 20; // y of bottom line (step 0 = E4)
+        const totalW = MARGIN_L + seqNotes.length * NOTE_W + 20;
+
+        const svg = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "svg",
+        );
+        svg.setAttribute("width", totalW);
+        svg.setAttribute("height", staffH);
+        svg.setAttribute("class", "staff-svg");
+
+        // Draw 5 staff lines (treble: E4 G4 B4 D5 F5 = steps 0,4,8,12,16)
+        LINE_STEPS.forEach((s) => {
+          const y = staffY0 - s * STEP;
+          const line = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line",
+          );
+          line.setAttribute("x1", MARGIN_L - 4);
+          line.setAttribute("x2", totalW - 4);
+          line.setAttribute("y1", y);
+          line.setAttribute("y2", y);
+          line.setAttribute("class", "staff-line");
+          svg.appendChild(line);
+        });
+
+        // Treble clef symbol
+        const clef = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text",
+        );
+        clef.setAttribute("x", 4);
+        clef.setAttribute("y", staffY0 - 4 * STEP + 10);
+        clef.setAttribute("class", "staff-clef");
+        clef.textContent = "𝄞";
+        svg.appendChild(clef);
+
+        // Notes
+        const noteGroups = [];
+
+        seqNotes.forEach((sn, i) => {
+          const step = noteStaffStep(sn.name, sn.oct);
+          const x = MARGIN_L + i * NOTE_W + NOTE_W / 2;
+          const y = staffY0 - step * STEP;
+
+          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          g.setAttribute("data-idx", i);
+
+          // Ledger lines if needed
+          // Below staff: step < 0 (need ledger at each even step below 0)
+          // Above staff: step > 16
+          if (step < 0) {
+            for (let ls = -2; ls >= step - (step % 2 === 0 ? 0 : -1); ls -= 2) {
+              if (ls > step - 2) {
+                const ll = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "line",
+                );
+                ll.setAttribute("x1", x - 9);
+                ll.setAttribute("x2", x + 9);
+                const ly = staffY0 - ls * STEP;
+                ll.setAttribute("y1", ly);
+                ll.setAttribute("y2", ly);
+                ll.setAttribute("class", "staff-ledger");
+                g.appendChild(ll);
+              }
+            }
+          }
+          // Middle C (step=2 below E4 = step -2 actually, C4 = step -2 from E4 = -2...
+          // For our notes oct1 starts at C5=step5, so no ledger lines needed below.
+          // Above: step > 16 (F5 is top line)
+          if (step > 16) {
+            for (let ls = 18; ls <= step + (step % 2 === 0 ? 0 : 1); ls += 2) {
+              const ll = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "line",
+              );
+              ll.setAttribute("x1", x - 9);
+              ll.setAttribute("x2", x + 9);
+              const ly = staffY0 - ls * STEP;
+              ll.setAttribute("y1", ly);
+              ll.setAttribute("y2", ly);
+              ll.setAttribute("class", "staff-ledger");
+              g.appendChild(ll);
+            }
+          }
+
+          // Stem (up if below middle, down if above)
+          const stemUp = step < 8;
+          const stem = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line",
+          );
+          stem.setAttribute("class", "staff-note-stem");
+          if (stemUp) {
+            stem.setAttribute("x1", x + HEAD_RX - 1);
+            stem.setAttribute("x2", x + HEAD_RX - 1);
+            stem.setAttribute("y1", y);
+            stem.setAttribute("y2", y - STEM_LEN);
+          } else {
+            stem.setAttribute("x1", x - HEAD_RX + 1);
+            stem.setAttribute("x2", x - HEAD_RX + 1);
+            stem.setAttribute("y1", y);
+            stem.setAttribute("y2", y + STEM_LEN);
+          }
+          g.appendChild(stem);
+
+          // Highlight background rect (shown when active)
+          const bgRect = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect",
+          );
+          bgRect.setAttribute("x", x - HEAD_RX - 3);
+          bgRect.setAttribute("y", y - HEAD_RY - 14);
+          bgRect.setAttribute("width", (HEAD_RX + 3) * 2);
+          bgRect.setAttribute("height", HEAD_RY * 2 + 28);
+          bgRect.setAttribute("rx", 4);
+          bgRect.setAttribute("ry", 4);
+          bgRect.setAttribute("class", "staff-note-bg");
+          g.appendChild(bgRect);
+
+          // Note head
+          const ellipse = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "ellipse",
+          );
+          ellipse.setAttribute("cx", x);
+          ellipse.setAttribute("cy", y);
+          ellipse.setAttribute("rx", HEAD_RX);
+          ellipse.setAttribute("ry", HEAD_RY);
+          ellipse.setAttribute("class", "staff-note-head");
+          ellipse.setAttribute("transform", `rotate(-15,${x},${y})`);
+          g.appendChild(ellipse);
+
+          // Label below
+          const lbl = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text",
+          );
+          lbl.setAttribute("x", x);
+          lbl.setAttribute("y", staffY0 + 14);
+          lbl.setAttribute("class", "staff-note-label");
+          lbl.textContent = sn.name[0] + sn.oct;
+          g.appendChild(lbl);
+
+          svg.appendChild(g);
+          noteGroups.push(g);
+        });
+
+        return { svg, noteGroups };
+      }
+
+      function buildExerciseCard(ex, section) {
+        const card = document.createElement("div");
+        card.className = "exercise-card";
+
+        // Header
+        const header = document.createElement("div");
+        header.className = "exercise-header";
+        const nameEl = document.createElement("div");
+        nameEl.className = "exercise-name";
+        nameEl.textContent = ex.name;
+        const metaEl = document.createElement("div");
+        metaEl.className = "exercise-meta";
+        metaEl.textContent = ex.meta;
+        header.appendChild(nameEl);
+        header.appendChild(metaEl);
+        card.appendChild(header);
+
+        // Sequence display
+        const seqEl = document.createElement("div");
+        seqEl.className = "exercise-seq";
+        const noteEls = [];
+        ex.seq.forEach((sn, i) => {
+          const noteSpan = document.createElement("span");
+          noteSpan.className = "seq-note";
+          noteSpan.textContent = `${sn.name}${sn.oct}`;
+          noteSpan.addEventListener("click", () => {
+            const nd = getNoteByName(sn.name, sn.oct);
+            if (nd)
+              playNote(nd.freq, {
+                classList: {
+                  add: () => {},
+                  remove: () => {},
+                  contains: () => false,
+                },
+                innerHTML: "",
+              });
+          });
+          noteEls.push(noteSpan);
+          seqEl.appendChild(noteSpan);
+          if (i < ex.seq.length - 1) {
+            const arr = document.createElement("span");
+            arr.className = "seq-arrow";
+            arr.textContent = "→";
+            seqEl.appendChild(arr);
+          }
+        });
+        card.appendChild(seqEl);
+
+        // Staff
+        const origStaff = buildStaff(ex.seq);
+        let staffNotes = origStaff.noteGroups;
+        const staffWrap = document.createElement("div");
+        staffWrap.className = "staff-wrap";
+        staffWrap.appendChild(origStaff.svg);
+        card.appendChild(staffWrap);
+
+        // Controls
+        const controls = document.createElement("div");
+        controls.className = "exercise-controls";
+        const playBtn = document.createElement("button");
+        playBtn.className = "ex-btn";
+        playBtn.textContent = "▶ Грати";
+        const loopBtn = document.createElement("button");
+        loopBtn.className = "ex-btn";
+        loopBtn.textContent = "⟳";
+        loopBtn.title = "Циклічно";
+        loopBtn.style.padding = "0.3rem 0.5rem";
+        let loopOn = false;
+        loopBtn.addEventListener("click", () => {
+          loopOn = !loopOn;
+          loopBtn.classList.toggle("loop-on", loopOn);
+        });
+        const tempoLabel = document.createElement("div");
+        tempoLabel.className = "ex-tempo";
+        const tempoVal = document.createElement("span");
+        tempoVal.textContent = "72 bpm";
+        const tempoSlider = document.createElement("input");
+        tempoSlider.type = "range";
+        tempoSlider.min = 40;
+        tempoSlider.max = 160;
+        tempoSlider.value = 72;
+        tempoSlider.addEventListener("input", () => {
+          tempoVal.textContent = `${tempoSlider.value} bpm`;
+        });
+        tempoLabel.appendChild(tempoSlider);
+        tempoLabel.appendChild(tempoVal);
+
+        playBtn.addEventListener("click", () => {
+          if (playBtn.classList.contains("ex-playing")) {
+            if (seqStopper) {
+              seqStopper();
+              seqStopper = null;
+            }
+            stopCurrent();
+            playBtn.classList.remove("ex-playing");
+            playBtn.textContent = "▶ Грати";
+            noteEls.forEach((el) => el.classList.remove("seq-active"));
+            restoreMainStaff();
+            return;
+          }
+          stopAllDrills();
+          if (seqStopper) {
+            seqStopper();
+            seqStopper = null;
+          }
+          document.querySelectorAll(".ex-btn.ex-playing").forEach((b) => {
+            b.classList.remove("ex-playing");
+            b.textContent = "▶ Грати";
+          });
+          playBtn.classList.add("ex-playing");
+          playBtn.textContent = "■ Стоп";
           restoreMainStaff();
-          activeDrillBtn = null; activeDrillRow = null;
+          playSequence(
+            ex.seq,
+            parseInt(tempoSlider.value),
+            playBtn,
+            noteEls,
+            loopOn,
+            staffNotes,
+          );
+        });
+
+        controls.appendChild(playBtn);
+        controls.appendChild(loopBtn);
+        controls.appendChild(tempoLabel);
+        card.appendChild(controls);
+
+        // Description
+        const desc = document.createElement("div");
+        desc.className = "exercise-desc";
+        desc.textContent = ex.desc;
+        card.appendChild(desc);
+
+        // Helper: restore main exercise staff
+        function restoreMainStaff() {
+          staffWrap.innerHTML = "";
+          const rebuilt = buildStaff(ex.seq);
+          staffNotes = rebuilt.noteGroups;
+          staffWrap.appendChild(rebuilt.svg);
         }
-      );
-    }
 
-    btn.addEventListener('click', () => startDrillPlayback(false, btn, '▶'));
-    loopBtn.addEventListener('click', () => startDrillPlayback(true, loopBtn, '⟳'));
-
-    rows.appendChild(row);
-  });
-
-  content.appendChild(rows);
-  toggle.addEventListener('click', () => {
-    const isOpen = content.classList.contains('open');
-    content.classList.toggle('open', !isOpen);
-    toggle.querySelector('span').textContent = isOpen ? '▸' : '▾';
-    lsSet(drillKey, !isOpen);
-  });
-
-  card.appendChild(toggle);
-  card.appendChild(content);
-
-  return {
-    stopDrills: () => {
-      if (activeDrillBtn) {
-        activeDrillBtn.classList.remove('playing');
-        activeDrillBtn.textContent = '▶';
+        return { card, staffWrap, tempoSlider, restoreMainStaff };
       }
-      if (activeDrillRow) activeDrillRow.classList.remove('playing');
-      activeDrillBtn = null; activeDrillRow = null;
-    }
-  };
-}
 
-const drillStoppers = [];
+      function appendDrillPanel(
+        card,
+        staffWrap,
+        tempoSlider,
+        restoreMainStaff,
+        drillKey,
+        drillLabel,
+        chainFn,
+      ) {
+        const drillOpen = lsGet(drillKey, false);
 
-function stopAllDrills() {
-  drillStoppers.forEach(fn => fn());
-}
+        const toggle = document.createElement("div");
+        toggle.className = "drill-toggle";
+        toggle.innerHTML = `<span>${drillOpen ? "▾" : "▸"}</span> ${drillLabel}`;
 
-function renderExercises() {
-  const container = document.getElementById('exercises');
-  const section = document.createElement('div');
-  section.className = 'exercises-section';
+        const content = document.createElement("div");
+        content.className = "drill-content" + (drillOpen ? " open" : "");
 
-  const hr = document.createElement('hr');
-  hr.className = 'divider';
-  section.appendChild(hr);
+        const rows = document.createElement("div");
+        rows.className = "drill-rows";
 
-  const title = document.createElement('div');
-  title.className = 'exercises-title';
-  title.textContent = 'Вправи';
-  section.appendChild(title);
+        let activeDrillBtn = null;
+        let activeDrillRow = null;
 
-  EXERCISES.forEach(ex => {
-    const { card, staffWrap, tempoSlider, restoreMainStaff } = buildExerciseCard(ex, section);
+        DRILL_BASE_NOTES.forEach((base) => {
+          const chain = chainFn(base.name, base.oct);
 
-    if (DRILL_INTERVALS[ex.name] !== undefined) {
-      const intervalSteps = DRILL_INTERVALS[ex.name];
-      const { stopDrills } = appendDrillPanel(
-        card, staffWrap, tempoSlider, restoreMainStaff,
-        'recorder_drill_' + ex.name,
-        DRILL_NAMES[ex.name],
-        (name, oct) => buildChain(name, oct, intervalSteps)
-      );
-      drillStoppers.push(stopDrills);
-    }
+          const row = document.createElement("div");
+          row.className = "drill-row";
 
-    section.appendChild(card);
-  });
+          const baseLabel = document.createElement("span");
+          baseLabel.className = "drill-base";
+          baseLabel.innerHTML = `${base.name}<sup>${base.oct}</sup>`;
+          row.appendChild(baseLabel);
 
-  // 1–4–5 card
-  const { card: card145, staffWrap: sw145, tempoSlider: ts145, restoreMainStaff: restore145 } =
-    buildExerciseCard(EXERCISE_145, section);
-  const { stopDrills: stop145 } = appendDrillPanel(
-    card145, sw145, ts145, restore145,
-    'recorder_drill_1-4-5',
-    'По ступенях',
-    (name, oct) => build145Chain(name, oct)
-  );
-  drillStoppers.push(stop145);
-  section.appendChild(card145);
+          const chainContainer = document.createElement("span");
+          chainContainer.className = "drill-chain";
+          const noteSpans = [];
+          chain.forEach((n, i) => {
+            const span = document.createElement("span");
+            span.className = "drill-seq-note";
+            span.innerHTML = `${n.name}<sup>${n.oct}</sup>`;
+            noteSpans.push(span);
+            chainContainer.appendChild(span);
+            if (i < chain.length - 1) {
+              const arrow = document.createElement("span");
+              arrow.className = "drill-seq-arrow";
+              arrow.textContent = "→";
+              chainContainer.appendChild(arrow);
+            }
+          });
+          row.appendChild(chainContainer);
 
-  container.appendChild(section);
-}
+          const btn = document.createElement("button");
+          btn.className = "drill-play-btn";
+          btn.textContent = "▶";
+          btn.title = "Грати";
+          row.appendChild(btn);
 
-function render() {
-  const container = document.getElementById('notes-section');
-  const notesOpen = lsGet('recorder_notes_open', false);
+          const loopBtn = document.createElement("button");
+          loopBtn.className = "drill-play-btn drill-loop-btn";
+          loopBtn.textContent = "⟳";
+          loopBtn.title = "Грати циклічно";
+          row.appendChild(loopBtn);
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'notes-wrapper';
+          function stopDrillRow() {
+            if (seqStopper) {
+              seqStopper();
+              seqStopper = null;
+            }
+            stopCurrent();
+            btn.classList.remove("playing");
+            btn.textContent = "▶";
+            loopBtn.classList.remove("playing");
+            loopBtn.textContent = "⟳";
+            row.classList.remove("playing");
+            noteSpans.forEach((s) => s.classList.remove("seq-active"));
+            restoreMainStaff();
+            activeDrillBtn = null;
+            activeDrillRow = null;
+          }
 
-  const toggle = document.createElement('div');
-  toggle.className = 'section-toggle';
-  toggle.innerHTML = `<span class="toggle-arrow">${notesOpen ? '▾' : '▸'}</span>&nbsp;Ноти`;
+          function startDrillPlayback(isLoop, triggerBtn, idleText) {
+            if (triggerBtn.classList.contains("playing")) {
+              stopDrillRow();
+              return;
+            }
 
-  const content = document.createElement('div');
-  content.className = 'notes-collapsible' + (notesOpen ? ' open' : '');
+            stopAllDrills();
+            if (seqStopper) {
+              seqStopper();
+              seqStopper = null;
+            }
+            stopCurrent();
+            document.querySelectorAll(".ex-btn.ex-playing").forEach((b) => {
+              b.classList.remove("ex-playing");
+              b.textContent = "▶ Грати";
+            });
 
-  [1, 2, 3].forEach(oct => {
-    const notes = NOTES.filter(n => n.oct === oct);
-    if (!notes.length) return;
+            activeDrillBtn = triggerBtn;
+            activeDrillRow = row;
+            triggerBtn.classList.add("playing");
+            triggerBtn.textContent = "■";
+            row.classList.add("playing");
 
-    const section = document.createElement('div');
-    section.className = 'octave-section';
-    const paddingDiv = document.createElement('div');
-    paddingDiv.style.cssText = 'padding-top:1.5rem';
+            const drillStaff = buildStaff(chain);
+            staffWrap.innerHTML = "";
+            staffWrap.appendChild(drillStaff.svg);
 
-    const label = document.createElement('div');
-    label.className = 'octave-label';
-    label.textContent = `${oct} октава`;
-    paddingDiv.appendChild(label);
-    section.appendChild(paddingDiv);
+            playSequence(
+              chain,
+              parseInt(tempoSlider.value),
+              {
+                classList: {
+                  contains: () => false,
+                  add: () => {},
+                  remove: () => {},
+                },
+                textContent: "",
+              },
+              noteSpans,
+              isLoop,
+              drillStaff.noteGroups,
+              () => {
+                triggerBtn.classList.remove("playing");
+                triggerBtn.textContent = idleText;
+                row.classList.remove("playing");
+                restoreMainStaff();
+                activeDrillBtn = null;
+                activeDrillRow = null;
+              },
+            );
+          }
 
-    const grid = document.createElement('div');
-    grid.className = 'notes-grid';
-    notes.forEach(note => grid.appendChild(buildNoteCol(note)));
-    section.appendChild(grid);
+          btn.addEventListener("click", () =>
+            startDrillPlayback(false, btn, "▶"),
+          );
+          loopBtn.addEventListener("click", () =>
+            startDrillPlayback(true, loopBtn, "⟳"),
+          );
 
-    if (oct < 3) {
-      const hr = document.createElement('hr');
-      hr.className = 'divider';
-      section.appendChild(hr);
-    }
+          rows.appendChild(row);
+        });
 
-    content.appendChild(section);
-  });
+        content.appendChild(rows);
+        toggle.addEventListener("click", () => {
+          const isOpen = content.classList.contains("open");
+          content.classList.toggle("open", !isOpen);
+          toggle.querySelector("span").textContent = isOpen ? "▸" : "▾";
+          lsSet(drillKey, !isOpen);
+        });
 
-  // Legend
-  const legend = document.createElement('div');
-  legend.className = 'legend';
-  [['closed','закрито'],['','відкрито'],['half','напівзакрито']].forEach(([cls, label]) => {
-    const item = document.createElement('div');
-    item.className = 'legend-item';
-    const hole = document.createElement('div');
-    hole.className = 'legend-hole' + (cls ? ' ' + cls : '');
-    item.appendChild(hole);
-    item.appendChild(document.createTextNode(label));
-    legend.appendChild(item);
-  });
-  content.appendChild(legend);
+        card.appendChild(toggle);
+        card.appendChild(content);
 
-  toggle.addEventListener('click', () => {
-    const isOpen = content.classList.contains('open');
-    content.classList.toggle('open', !isOpen);
-    toggle.querySelector('.toggle-arrow').textContent = isOpen ? '▸' : '▾';
-    lsSet('recorder_notes_open', !isOpen);
-  });
+        return {
+          stopDrills: () => {
+            if (activeDrillBtn) {
+              activeDrillBtn.classList.remove("playing");
+              activeDrillBtn.textContent = "▶";
+            }
+            if (activeDrillRow) activeDrillRow.classList.remove("playing");
+            activeDrillBtn = null;
+            activeDrillRow = null;
+          },
+        };
+      }
 
-  wrapper.appendChild(toggle);
-  wrapper.appendChild(content);
-  container.appendChild(wrapper);
-}
+      const drillStoppers = [];
 
-render();
-renderExercises();
+      function stopAllDrills() {
+        drillStoppers.forEach((fn) => fn());
+      }
 
-// Theme toggle — light is default
-(function() {
-  const btn = document.getElementById('themeBtn');
-  let dark = false;
-  btn.addEventListener('click', () => {
-    dark = !dark;
-    document.documentElement.classList.toggle('dark', dark);
-    btn.textContent = dark ? '☀️ світла' : '🌙 темна';
-  });
-})();
-</script>
-</body>
+      function renderExercises() {
+        const container = document.getElementById("exercises");
+        const section = document.createElement("div");
+        section.className = "exercises-section";
+
+        const hr = document.createElement("hr");
+        hr.className = "divider";
+        section.appendChild(hr);
+
+        const title = document.createElement("div");
+        title.className = "exercises-title";
+        title.textContent = "Вправи";
+        section.appendChild(title);
+
+        EXERCISES.forEach((ex) => {
+          const { card, staffWrap, tempoSlider, restoreMainStaff } =
+            buildExerciseCard(ex, section);
+
+          if (DRILL_INTERVALS[ex.name] !== undefined) {
+            const intervalSteps = DRILL_INTERVALS[ex.name];
+            const { stopDrills } = appendDrillPanel(
+              card,
+              staffWrap,
+              tempoSlider,
+              restoreMainStaff,
+              "recorder_drill_" + ex.name,
+              DRILL_NAMES[ex.name],
+              (name, oct) => buildChain(name, oct, intervalSteps),
+            );
+            drillStoppers.push(stopDrills);
+          }
+
+          section.appendChild(card);
+        });
+
+        // 1–4–5 card
+        const {
+          card: card145,
+          staffWrap: sw145,
+          tempoSlider: ts145,
+          restoreMainStaff: restore145,
+        } = buildExerciseCard(EXERCISE_145, section);
+        const { stopDrills: stop145 } = appendDrillPanel(
+          card145,
+          sw145,
+          ts145,
+          restore145,
+          "recorder_drill_1-4-5",
+          "По ступенях",
+          (name, oct) => build145Chain(name, oct),
+        );
+        drillStoppers.push(stop145);
+        section.appendChild(card145);
+
+        container.appendChild(section);
+      }
+
+      function render() {
+        const container = document.getElementById("notes-section");
+        const notesOpen = lsGet("recorder_notes_open", false);
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "notes-wrapper";
+
+        const toggle = document.createElement("div");
+        toggle.className = "section-toggle";
+        toggle.innerHTML = `<span class="toggle-arrow">${notesOpen ? "▾" : "▸"}</span>&nbsp;Ноти`;
+
+        const content = document.createElement("div");
+        content.className = "notes-collapsible" + (notesOpen ? " open" : "");
+
+        [1, 2, 3].forEach((oct) => {
+          const notes = NOTES.filter((n) => n.oct === oct);
+          if (!notes.length) return;
+
+          const section = document.createElement("div");
+          section.className = "octave-section";
+          const paddingDiv = document.createElement("div");
+          paddingDiv.style.cssText = "padding-top:1.5rem";
+
+          const label = document.createElement("div");
+          label.className = "octave-label";
+          label.textContent = `${oct} октава`;
+          paddingDiv.appendChild(label);
+          section.appendChild(paddingDiv);
+
+          const grid = document.createElement("div");
+          grid.className = "notes-grid";
+          notes.forEach((note) => grid.appendChild(buildNoteCol(note)));
+          section.appendChild(grid);
+
+          if (oct < 3) {
+            const hr = document.createElement("hr");
+            hr.className = "divider";
+            section.appendChild(hr);
+          }
+
+          content.appendChild(section);
+        });
+
+        // Legend
+        const legend = document.createElement("div");
+        legend.className = "legend";
+        [
+          ["closed", "закрито"],
+          ["", "відкрито"],
+          ["half", "напівзакрито"],
+        ].forEach(([cls, label]) => {
+          const item = document.createElement("div");
+          item.className = "legend-item";
+          const hole = document.createElement("div");
+          hole.className = "legend-hole" + (cls ? " " + cls : "");
+          item.appendChild(hole);
+          item.appendChild(document.createTextNode(label));
+          legend.appendChild(item);
+        });
+        content.appendChild(legend);
+
+        toggle.addEventListener("click", () => {
+          const isOpen = content.classList.contains("open");
+          content.classList.toggle("open", !isOpen);
+          toggle.querySelector(".toggle-arrow").textContent = isOpen
+            ? "▸"
+            : "▾";
+          lsSet("recorder_notes_open", !isOpen);
+        });
+
+        wrapper.appendChild(toggle);
+        wrapper.appendChild(content);
+        container.appendChild(wrapper);
+      }
+
+      render();
+      renderExercises();
+
+      // Theme toggle — light is default
+      (function () {
+        const btn = document.getElementById("themeBtn");
+        let dark = false;
+        btn.addEventListener("click", () => {
+          dark = !dark;
+          document.documentElement.classList.toggle("dark", dark);
+          btn.textContent = dark ? "☀️ світла" : "🌙 темна";
+        });
+      })();
+    </script>
+  </body>
 </html>
