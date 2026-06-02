@@ -388,7 +388,7 @@
       }
 
       .exercise-name {
-        font-size: 1.1rem;
+        font-size: 1.5rem;
         font-weight: 600;
         color: var(--gold);
         font-style: italic;
@@ -396,7 +396,7 @@
 
       .exercise-meta {
         font-family: "JetBrains Mono", monospace;
-        font-size: 0.65rem;
+        font-size: 0.8rem;
         color: var(--cream-dim);
       }
 
@@ -445,7 +445,7 @@
 
       .ex-btn {
         font-family: "JetBrains Mono", monospace;
-        font-size: 0.7rem;
+        font-size: 0.85rem;
         color: var(--cream-dim);
         background: transparent;
         border: 1px solid var(--border);
@@ -466,9 +466,9 @@
       }
       .ex-btn.loop-on {
         border-color: var(--loop-on-border);
-        color: var(--loop-on-color);
-        background: var(--seq-active-bg);
-        font-weight: 700;
+        color: var(--surface);
+        background: var(--gold-dim);
+        font-weight: 900;
       }
 
       .ex-tempo {
@@ -487,7 +487,7 @@
       }
 
       .exercise-desc {
-        font-size: 0.85rem;
+        font-size: 1.2rem;
         color: var(--cream-dim);
         font-style: italic;
         margin-top: 0.6rem;
@@ -625,7 +625,7 @@
         align-items: center;
         gap: 0.5rem;
         font-family: "JetBrains Mono", monospace;
-        font-size: 0.65rem;
+        font-size: 1rem;
         color: var(--cream-dim);
         cursor: pointer;
         padding: 0.5rem 0 0;
@@ -713,7 +713,7 @@
 
       .drill-play-btn {
         font-family: "JetBrains Mono", monospace;
-        font-size: 0.78rem;
+        font-size: 0.9rem;
         color: var(--cream-dim);
         background: transparent;
         border: 1px solid var(--border);
@@ -1673,7 +1673,9 @@
         loopBtn.className = "ex-btn";
         loopBtn.textContent = "⟳";
         loopBtn.title = "Циклічно";
-        loopBtn.style.padding = "0.3rem 0.5rem";
+        loopBtn.style.padding = "0.05rem 0.2rem 0.3rem 0.4rem";
+        loopBtn.style.lineHeight = ".9";
+        loopBtn.style.fontSize = "1.5rem";
         let loopOn = false;
         loopBtn.addEventListener("click", () => {
           loopOn = !loopOn;
